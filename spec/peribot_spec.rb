@@ -5,7 +5,9 @@ describe Peribot do
     expect(Peribot::VERSION).not_to be nil
   end
 
-  it 'does something useful' do
-    expect(false).to eq(true)
+  describe '.log' do
+    it 'prints to stderr' do
+      expect { Peribot.log 'stuff' }.to output("[Peribot] stuff\n").to_stderr
+    end
   end
 end
