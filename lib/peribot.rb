@@ -1,3 +1,4 @@
+require 'peribot/middleware'
 require 'peribot/version'
 
 # The top-level namespace for Peribot. Some global functionality is also
