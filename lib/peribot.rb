@@ -8,6 +8,14 @@ require 'peribot/version'
 module Peribot
   module_function
 
+  # Obtain an instance of the postprocessor chain, which receives messages from
+  # services and forwards them to the sender after processing.
+  #
+  # @return [Peribot::Postprocessor] The postprocessor instance
+  def postprocessor
+    @postprocessor ||= Peribot::Postprocessor.new
+  end
+
   # Obtain an instance of the sender chain, which receives messages after
   # postprocessing and sends them to GroupMe.
   #

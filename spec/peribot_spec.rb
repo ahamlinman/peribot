@@ -5,6 +5,12 @@ describe Peribot do
     expect(Peribot::VERSION).not_to be nil
   end
 
+  describe '.postprocessor' do
+    it 'returns a postprocessor chain instance' do
+      expect(Peribot.postprocessor).to be_instance_of(Peribot::Postprocessor)
+    end
+  end
+
   describe '.sender' do
     it 'returns a sender chain instance' do
       expect(Peribot.sender).to be_instance_of(Peribot::Sender)
