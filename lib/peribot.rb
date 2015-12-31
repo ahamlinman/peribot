@@ -7,6 +7,14 @@ require 'peribot/version'
 module Peribot
   module_function
 
+  # Obtain an instance of the sender chain, which receives messages after
+  # postprocessing and sends them to GroupMe.
+  #
+  # @return [Peribot::Sender] The sender instance
+  def sender
+    @sender ||= Peribot::Sender.new
+  end
+
   # A simple logging function for use by Peribot components. Outputs the given
   # message to stderr with a "[Peribot]" prefix.
   #
