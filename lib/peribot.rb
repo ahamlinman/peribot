@@ -1,6 +1,7 @@
 require 'peribot/middleware'
 require 'peribot/postprocessor'
 require 'peribot/sender'
+require 'peribot/services'
 require 'peribot/version'
 
 # The top-level namespace for Peribot. Some global functionality is also
