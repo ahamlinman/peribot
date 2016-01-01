@@ -10,11 +10,8 @@ module Peribot
     # action.
     #
     # Peribot uses middleware chains for preprocessing, postprocessing, and
-    # sending messages. New chains should be created using the
-    # Peribot::Middleware.new_chain method rather than extending this class
-    # directly.
-    #
-    # @see Peribot::Middleware.new_chain
+    # sending messages. New chains are created by extending this class and
+    # overriding the end_action method if necessary.
     class Chain
       include Concurrent::Async
       include Singleton
@@ -71,6 +68,8 @@ module Peribot
 
       private
 
+      # (private)
+      #
       # Chain the tasks for this middleware chain onto the given promise.
       #
       # @param promise [Concurrent::Promise] The initial promise

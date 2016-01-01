@@ -1,6 +1,8 @@
 .DS_Store
 *.swp
 
+.yardoc
 bin
 coverage
+doc
 Gemfile.lock
