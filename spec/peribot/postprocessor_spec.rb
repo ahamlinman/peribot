@@ -7,9 +7,9 @@ describe Peribot::Postprocessor do
   describe '#end_action' do
     it 'forwards messages to the sender chain' do
       message = { 'test' => true }
-      expect(Peribot.sender).to receive(:accept).with(message)
+      expect(Peribot::Sender.instance).to receive(:accept).with(message)
 
-      Peribot::Postprocessor.new.end_action(message).value
+      Peribot::Postprocessor.instance.end_action(message).value
     end
   end
 end

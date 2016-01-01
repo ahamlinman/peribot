@@ -13,10 +13,18 @@ describe Peribot::Middleware::Chain do
     expect(subclass::Task.ancestors).to include(Peribot::Middleware::Task)
   end
 
+  it 'causes subclasses to be singletons' do
+    subclass = Class.new Peribot::Middleware::Chain
+
+    expect(subclass).to respond_to(:instance)
+    expect { subclass.new }.to raise_error(NoMethodError)
+    expect(subclass.instance).to eq(subclass.instance)
+  end
+
   describe '#accept' do
     it 'schedules and returns a Concurrent::Promise' do
       chain_class = Class.new Peribot::Middleware::Chain
-      promise = chain_class.new.accept('test' => true)
+      promise = chain_class.instance.accept('test' => true)
 
       expect(promise).to be_instance_of(Concurrent::Promise)
     end
@@ -27,7 +35,7 @@ describe Peribot::Middleware::Chain do
           puts message.inspect
         end
       end
-      chain = chain_class.new
+      chain = chain_class.instance
 
       expect { chain.accept({}).value }.to output("{}\n").to_stdout
     end
@@ -44,14 +52,14 @@ describe Peribot::Middleware::Chain do
     end
 
     it 'returns a Concurrent::Promise' do
-      chain = @chain.new
+      chain = @chain.instance
       promise = chain.promise_chain('test' => true)
 
       expect(promise).to be_instance_of(Concurrent::Promise)
     end
 
     it 'includes the end action in the promise chain' do
-      chain = @chain.new
+      chain = @chain.instance
       chain.promise_chain('test' => true).execute.value
 
       expect(chain.end_message).to eq('test' => true)
@@ -65,7 +73,7 @@ describe Peribot::Middleware::Chain do
         end
       end
 
-      chain = @chain.new
+      chain = @chain.instance
       chain.promise_chain('test' => true).execute.value
 
       expect(chain.end_message['test']).to eq(:run)
@@ -78,7 +86,7 @@ describe Peribot::Middleware::Chain do
         end
       end
 
-      chain = @chain.new
+      chain = @chain.instance
       expect { chain.promise_chain({}).execute.value }.to output.to_stderr
     end
   end

@@ -11,7 +11,7 @@ module Peribot
     #
     # @param message [Hash] The processed message
     def end_action(message)
-      Peribot.sender.async.accept message
+      Peribot::Sender.instance.async.accept message
     end
   end
 end

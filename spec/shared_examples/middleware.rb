@@ -17,4 +17,8 @@ shared_examples 'a middleware chain' do
     Class.new(described_class::Task)
     expect(described_class.chain.length).to eq(1)
   end
+
+  it 'can be accessed as a singleton' do
+    expect(described_class).to respond_to(:instance)
+  end
 end

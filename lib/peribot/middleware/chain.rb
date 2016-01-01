@@ -1,4 +1,5 @@
 require 'concurrent'
+require 'singleton'
 
 module Peribot
   module Middleware
@@ -16,9 +17,12 @@ module Peribot
     # @see Peribot::Middleware.new_chain
     class Chain
       include Concurrent::Async
+      include Singleton
 
       class << self
         def inherited(base)
+          super
+
           # Define the chain of task classes
           base.instance_variable_set :@chain, []
           class << base; attr_reader :chain; end
