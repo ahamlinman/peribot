@@ -11,8 +11,8 @@ module Peribot
           Peribot::Services.list << base
 
           base.instance_variable_set :@message_handlers, []
-          base.instance_variable_set :@command_handlers, []
-          base.instance_variable_set :@listen_handlers, []
+          base.instance_variable_set :@command_handlers, {}
+          base.instance_variable_set :@listen_handlers, {}
 
           class << base
             attr_reader :message_handlers, :command_handlers, :listen_handlers
@@ -34,7 +34,7 @@ module Peribot
         # @param command [Symbol] The command to look for
         # @param handler [Symbol] The name of the method to be called
         def on_command(command, handler)
-          @command_handlers << { command.to_s => handler }
+          @command_handlers[command.to_s] = handler
         end
 
         # Register a method that will be called with match data and a message
@@ -43,7 +43,7 @@ module Peribot
         # @param regex [Regexp] The regex to use when matching messages
         # @param handler [Symbol] The name of the method to be called
         def on_hear(regex, handler)
-          @listen_handlers << { regex => handler }
+          @listen_handlers[regex] = handler
         end
       end
     end

@@ -25,7 +25,7 @@ describe Peribot::Services::Base do
       on_command :cmd, :test
     end
 
-    expect(subclass.command_handlers).to contain_exactly('cmd' => :test)
+    expect(subclass.command_handlers).to include('cmd' => :test)
   end
 
   it 'supports listen handlers in subclasses' do
@@ -34,6 +34,6 @@ describe Peribot::Services::Base do
       on_hear(/match/, :test)
     end
 
-    expect(subclass.listen_handlers).to contain_exactly(/match/ => :test)
+    expect(subclass.listen_handlers).to include(/match/ => :test)
   end
 end
