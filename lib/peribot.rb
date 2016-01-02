@@ -1,4 +1,5 @@
 require 'peribot/middleware'
+require 'peribot/preprocessor'
 require 'peribot/postprocessor'
 require 'peribot/sender'
 require 'peribot/services'
