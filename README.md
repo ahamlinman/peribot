@@ -1,4 +1,4 @@
-# Peribot
+# Peribot [![Build Status](https://travis-ci.org/ahamlinman/peribot.svg?branch=master)](https://travis-ci.org/ahamlinman/peribot)
 
 Peribot is a flexible, asynchronous message processing framework, primarily
 intended for the creation of automated GroupMe chatbots. It is designed with
