@@ -36,6 +36,8 @@ module Peribot
 
     reset_config_builder
     reset_store_map
+
+    nil
   end
 
   # Retrieve a read-only object containing information read from the
