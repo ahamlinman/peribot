@@ -26,4 +26,39 @@ describe Peribot do
       expect(Peribot.meta_config.store_directory).to eq('store/test')
     end
   end
+
+  describe '.config' do
+    context 'with no conf_directory set' do
+      before(:each) { Peribot.configure {} }
+
+      it 'raises an error' do
+        expect { Peribot.config }.to raise_error('No config directory defined')
+      end
+    end
+
+    context 'with a conf_directory set' do
+      let(:dir) do
+        File.expand_path('./fixtures/config', File.dirname(__FILE__))
+      end
+
+      let(:file) do
+        File.expand_path('./fixtures/config/test.conf', File.dirname(__FILE__))
+      end
+
+      let(:contents) { { 'number' => 1, 'string' => 'It works!' } }
+
+      before(:each) do
+        Peribot.configure { conf_directory dir }
+      end
+
+      it 'loads configuration files in the directory' do
+        expect(File.exist?(file)).to be true
+        expect(Peribot.config['test']).to eq(contents)
+      end
+
+      it 'freezes the config object' do
+        expect(Peribot.config).to be_frozen
+      end
+    end
+  end
 end
