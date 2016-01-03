@@ -23,6 +23,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'groupme', '~> 0.0.6'
   spec.add_dependency 'concurrent-ruby', '~> 1.0'
+  spec.add_dependency 'docile', '~> 1.1.5'
 
   spec.add_development_dependency 'bundler', '~> 1.11'
   spec.add_development_dependency 'rake', '~> 10.0'
