@@ -65,19 +65,17 @@ module Peribot
     # global configuration object.
     def reset_config_builder
       @config_builder = Concurrent::Delay.new do
-        setup_config(@meta_config).freeze
+        setup_config.freeze
       end
     end
 
     # Build the configuration object for this Peribot instance by reading all
     # of the files in the configuration directory and creating a hash out of
     # them.
-    #
-    # @param meta_config [Peribot::Configuration] The meta_config object
-    def setup_config(meta_config)
-      fail 'No config directory defined' unless meta_config.conf_directory
+    def setup_config
+      fail 'No config directory defined' unless @meta_config.conf_directory
 
-      files = Dir[File.join(meta_config.conf_directory, '*.conf')]
+      files = Dir[File.join(@meta_config.conf_directory, '*.conf')]
       files.reduce({}) do |config, file|
         basename = File.basename file, '.*'
         config.merge(basename => load_config_file(file))
