@@ -44,6 +44,8 @@ module Peribot
   # configuration directory set via the configure method.
   def config
     @config_builder.value || (fail @config_builder.reason)
+  rescue NoMethodError
+    raise 'Peribot is not configured'
   end
 
   # Retrieve a Concurrent::Atom backed by a file in the store directory set via
@@ -52,6 +54,8 @@ module Peribot
   # @param key [String] A unique key representing the store
   def store(key)
     @store_map[key.to_s]
+  rescue NoMethodError
+    raise 'Peribot is not configured'
   end
 
   class << self
@@ -120,6 +124,8 @@ module Peribot
     # @param key [String] The name of the store
     def store_filename(key)
       dir = @meta_config.store_directory
+      fail 'No store directory defined' unless dir
+
       File.expand_path(File.join(dir, "#{key}.store"))
     end
 

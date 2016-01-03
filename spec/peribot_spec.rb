@@ -29,6 +29,14 @@ describe Peribot do
   end
 
   describe '.config' do
+    context 'before configuration' do
+      before(:each) { Peribot.instance_eval { @config_builder = nil } }
+
+      it 'raises an error' do
+        expect { Peribot.config }.to raise_error('Peribot is not configured')
+      end
+    end
+
     context 'with no conf_directory set' do
       before(:each) { Peribot.configure {} }
 
@@ -66,20 +74,37 @@ describe Peribot do
   describe '.store' do
     let!(:dir) { Dir.mktmpdir }
 
-    before(:each) do
-      Peribot.configure { store_directory dir }
+    context 'before configuration' do
+      before(:each) { Peribot.instance_eval { @store_map = nil } }
+
+      it 'raises an error' do
+        expect { Peribot.store('') }.to raise_error('Peribot is not configured')
+      end
     end
 
-    it 'returns a Concurrent::Atom' do
-      expect(Peribot.store('test')).to be_instance_of(Concurrent::Atom)
+    context 'with no store_directory set' do
+      before(:each) { Peribot.configure {} }
+
+      it 'raises an error' do
+        msg = 'No store directory defined'
+        expect { Peribot.store('') }.to raise_error(msg)
+      end
     end
 
-    it 'returns the same Atom for a given key' do
-      expect(Peribot.store('test')).to equal(Peribot.store('test'))
-    end
+    context 'with a store_directory set' do
+      before(:each) do
+        Peribot.configure { store_directory dir }
+      end
 
-    context 'when writing a value' do
-      it 'creates a persistent store file' do
+      it 'returns a Concurrent::Atom' do
+        expect(Peribot.store('test')).to be_instance_of(Concurrent::Atom)
+      end
+
+      it 'returns the same Atom for a given key' do
+        expect(Peribot.store('test')).to equal(Peribot.store('test'))
+      end
+
+      it 'creates a persistent store file when writing' do
         Peribot.store('test').swap { 'It works!' }
 
         file = File.join dir, 'test.store'
