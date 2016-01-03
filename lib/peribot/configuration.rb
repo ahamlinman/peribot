@@ -1,3 +1,5 @@
+require 'peribot/configuration/builder'
+
 module Peribot
   # A class to hold configuration options for a Peribot instance, such as the
   # locations of directories for configuration and persistent store files.
