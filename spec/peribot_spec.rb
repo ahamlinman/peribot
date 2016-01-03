@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'tmpdir'
 
 describe Peribot do
   it 'has a version number' do
@@ -58,6 +59,31 @@ describe Peribot do
 
       it 'freezes the config object' do
         expect(Peribot.config).to be_frozen
+      end
+    end
+  end
+
+  describe '.store' do
+    let!(:dir) { Dir.mktmpdir }
+
+    before(:each) do
+      Peribot.configure { store_directory dir }
+    end
+
+    it 'returns a Concurrent::Atom' do
+      expect(Peribot.store('test')).to be_instance_of(Concurrent::Atom)
+    end
+
+    it 'returns the same Atom for a given key' do
+      expect(Peribot.store('test')).to equal(Peribot.store('test'))
+    end
+
+    context 'when writing a value' do
+      it 'creates a persistent store file' do
+        Peribot.store('test').swap { 'It works!' }
+
+        file = File.join dir, 'test.store'
+        expect(File.exist?(file)).to be true
       end
     end
   end
