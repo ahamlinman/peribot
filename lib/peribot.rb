@@ -8,6 +8,7 @@ require 'peribot/version'
 
 require 'concurrent'
 require 'docile'
+require 'pstore'
 require 'yaml'
 
 # The top-level namespace for Peribot. Some global functionality is also
@@ -34,12 +35,21 @@ module Peribot
     @meta_config = Docile.dsl_eval(builder, &block).build
 
     reset_config_builder
+    reset_store_map
   end
 
   # Retrieve a read-only object containing information read from the
   # configuration directory set via the configure method.
   def config
     @config_builder.value || (fail @config_builder.reason)
+  end
+
+  # Retrieve a Concurrent::Atom backed by a file in the store directory set via
+  # the configure method.
+  #
+  # @param key [String] A unique key representing the store
+  def store(key)
+    @store_map[key.to_s]
   end
 
   class << self
@@ -73,6 +83,59 @@ module Peribot
     # @param file [String] The name of the file to load
     def load_config_file(file)
       YAML.load_file file
+    end
+
+    # (Re-)Set the Concurrent::Map that is used to store all of the
+    # Concurrent::Atom store objects.
+    def reset_store_map
+      # Concurrent::Map#initialize accepts a block that will be called to
+      # initialize nonexistent values. The documentation for Map appears to be
+      # incomplete and doesn't really show this, but it is evident from the
+      # code itself.
+      @store_map = Concurrent::Map.new(&method(:create_store_atom))
+    end
+
+    # Create a new Concurrent::Atom to be used for persistent storage. This is
+    # called by the Concurrent::Map implementation when a store is requested
+    # for a nonexistent key. The Atom created by this method will be saved in
+    # the map and used for future accesses of the given key.
+    #
+    # @param map [Concurrent::Map] The store map
+    # @param key [String] The key representing the store
+    def create_store_atom(map, key)
+      file = store_filename key
+      store = get_store file
+      initial = store.transaction { store[:data] }
+
+      atom = Concurrent::Atom.new initial
+      atom.add_observer(&create_store_observer(store))
+
+      map[key] = atom
+    end
+
+    # Get the path to a persistent store file based on a key.
+    #
+    # @param key [String] The name of the store
+    def store_filename(key)
+      dir = @meta_config.store_directory
+      File.expand_path(File.join(dir, "#{key}.store"))
+    end
+
+    # Load the data in a persistent store file based on a file path.
+    #
+    # @param file [String] The path to the file
+    def get_store(file)
+      # The second parameter makes the PStore thread-safe.
+      PStore.new file, true
+    end
+
+    # Construct an observer for a given store.
+    #
+    # @param store [PStore] The store to save data to on update.
+    def create_store_observer(store)
+      proc do |_, _, new_value|
+        store.transaction { store[:data] = new_value }
+      end
     end
   end
 end
