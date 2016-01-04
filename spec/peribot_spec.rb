@@ -123,4 +123,14 @@ describe Peribot do
       end
     end
   end
+
+  describe '.reset' do
+    it 'resets configuration for this instance' do
+      Peribot.configure {}
+      Peribot.reset
+
+      expect { Peribot.config }.to raise_error('Peribot is not configured')
+      expect { Peribot.store('') }.to raise_error('Peribot is not configured')
+    end
+  end
 end

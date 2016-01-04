@@ -71,6 +71,14 @@ module Peribot
     raise 'Peribot is not configured'
   end
 
+  def reset
+    @meta_config = nil
+    @config_builder = nil
+    @store_map = nil
+    @conf_blocks = nil
+    @conf_promise = nil
+  end
+
   class << self
     private
 
