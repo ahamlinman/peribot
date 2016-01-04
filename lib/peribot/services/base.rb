@@ -49,6 +49,17 @@ module Peribot
         end
       end
 
+      # Initialize a new service instance with a Peribot instance (that may be
+      # used for configuration and persistent storage) and an acceptor (an
+      # object that can receive :accept with completed messages to send).
+      #
+      # @param bot [Peribot] A Peribot object
+      # @param acceptor [Peribot::Middleware::Chain] Receives reply messages
+      def initialize(bot, acceptor)
+        @bot = bot
+        @acceptor = acceptor
+      end
+
       # Begin processing a new message. This will cause each appropriate
       # handler method to be called. Any messages that handler methods wish to
       # send will be sent to the postprocessing chain after processing by the
@@ -147,7 +158,7 @@ module Peribot
       def end_action(replies, original)
         msgs = replies.flatten.reject(&:nil?)
         msgs = convert_strings_to_replies msgs, original
-        msgs.each { |msg| Peribot::Postprocessor.instance.accept msg }
+        msgs.each { |msg| @acceptor.accept msg }
       end
 
       # Normalize an array containing mixed strings and messages so that it
@@ -168,10 +179,10 @@ module Peribot
       # @param error [Exception] The error that was raised
       # @param message [Hash] The message being processed
       def failure_action(error, message)
-        Peribot.log "#{self.class}: Error while processing message\n"\
-                    "  => message = #{message.inspect}\n"\
-                    "  => exception = #{error.inspect}\n"\
-                    "  => backtrace:\n#{format_backtrace error.backtrace}"
+        @bot.log "#{self.class}: Error while processing message\n"\
+                 "  => message = #{message.inspect}\n"\
+                 "  => exception = #{error.inspect}\n"\
+                 "  => backtrace:\n#{format_backtrace error.backtrace}"
       end
 
       # Format an exception backtrace for printing to the log.
