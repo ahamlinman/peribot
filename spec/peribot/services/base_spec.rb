@@ -41,8 +41,8 @@ describe Peribot::Services::Base do
     let(:base) { Peribot::Services::Base }
     let(:message) { { 'group_id' => '1234', 'text' => '#test this' }.freeze }
     let(:reply) { { 'group_id' => '1234', 'text' => 'Success!' } }
-    let(:bot) { Peribot }
-    let(:postprocessor) { Peribot::Postprocessor.instance }
+    let(:bot) { class_double(Peribot) }
+    let(:postprocessor) { instance_double(Peribot::Postprocessor) }
 
     it 'returns a promise' do
       subclass = Class.new(base)
