@@ -41,11 +41,13 @@ describe Peribot::Services::Base do
     let(:base) { Peribot::Services::Base }
     let(:message) { { 'group_id' => '1234', 'text' => '#test this' }.freeze }
     let(:reply) { { 'group_id' => '1234', 'text' => 'Success!' } }
+    let(:bot) { Peribot }
     let(:postprocessor) { Peribot::Postprocessor.instance }
 
     it 'returns a promise' do
       subclass = Class.new(base)
-      expect(subclass.new.accept({})).to be_instance_of(Concurrent::Promise)
+      instance = subclass.new bot, postprocessor
+      expect(instance.accept({})).to be_instance_of(Concurrent::Promise)
     end
 
     context 'with a message handler' do
@@ -60,7 +62,9 @@ describe Peribot::Services::Base do
 
       it 'replies to any message' do
         expect(postprocessor).to receive(:accept).with(reply)
-        subclass.new.accept(message).value
+
+        instance = subclass.new bot, postprocessor
+        instance.accept(message).value
       end
     end
 
@@ -76,7 +80,9 @@ describe Peribot::Services::Base do
 
       it 'replies to messages with commands' do
         expect(postprocessor).to receive(:accept).with(reply)
-        subclass.new.accept(message).value
+
+        instance = subclass.new bot, postprocessor
+        instance.accept(message).value
       end
 
       it 'does not reply to messages without commands' do
@@ -84,7 +90,9 @@ describe Peribot::Services::Base do
 
         bad_msg = message.dup
         bad_msg['text'] = 'Do not process this!'
-        subclass.new.accept(bad_msg).value
+
+        instance = subclass.new bot, postprocessor
+        instance.accept(bad_msg).value
       end
     end
 
@@ -100,7 +108,9 @@ describe Peribot::Services::Base do
 
       it 'replies to messages matching a regex' do
         expect(postprocessor).to receive(:accept).with(reply)
-        subclass.new.accept(message).value
+
+        instance = subclass.new bot, postprocessor
+        instance.accept(message).value
       end
 
       it 'does not reply to messages not matching the regex' do
@@ -108,7 +118,9 @@ describe Peribot::Services::Base do
 
         bad_msg = message.dup
         bad_msg['text'] = 'It will not match!'
-        subclass.new.accept(bad_msg).value
+
+        instance = subclass.new bot, postprocessor
+        instance.accept(bad_msg).value
       end
     end
 
@@ -124,7 +136,9 @@ describe Peribot::Services::Base do
 
       it 'does not send a reply' do
         expect(postprocessor).to_not receive(:accept)
-        subclass.new.accept(message).value
+
+        instance = subclass.new bot, postprocessor
+        instance.accept(message).value
       end
     end
 
@@ -141,7 +155,9 @@ describe Peribot::Services::Base do
       it 'sends multiple replies' do
         expect(postprocessor).to receive(:accept).with(reply)
         expect(postprocessor).to receive(:accept).with('another' => 'reply')
-        subclass.new.accept(message).value
+
+        instance = subclass.new bot, postprocessor
+        instance.accept(message).value
       end
     end
 
@@ -166,13 +182,16 @@ describe Peribot::Services::Base do
         $stderr = File.open(File::NULL, 'w')
 
         expect(postprocessor).to receive(:accept).with(reply)
-        subclass.new.accept(message).value
+
+        instance = subclass.new bot, postprocessor
+        instance.accept(message).value
 
         $stderr = original_stderr
       end
 
       it 'logs the error to stderr' do
-        expect { subclass.new.accept(message).value }.to output.to_stderr
+        instance = subclass.new bot, postprocessor
+        expect { instance.accept(message).value }.to output.to_stderr
       end
     end
   end
