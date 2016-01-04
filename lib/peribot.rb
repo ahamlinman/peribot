@@ -37,7 +37,20 @@ module Peribot
     reset_config_builder
     reset_store_map
 
-    nil
+    @conf_promise = Concurrent::Promise.all?(*@conf_blocks) if @conf_blocks
+    @conf_promise.execute if @conf_promise
+  end
+
+  # Execute a block once Peribot is known to have been configured. The given
+  # block may be executed immediately or at some point in the future depending
+  # on whether configuration has been completed. The block will be executed
+  # asynchronously on a background thread. This method is intended to be used
+  # when defining classes, and is *not* designed to be thread-safe.
+  def when_configured(&block)
+    return @conf_promise.then(&block) if @conf_promise
+
+    @conf_blocks ||= []
+    @conf_blocks << Concurrent::Promise.new(&block)
   end
 
   # Retrieve a read-only object containing information read from the

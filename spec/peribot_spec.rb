@@ -30,6 +30,7 @@ describe Peribot do
 
   describe '.when_configured' do
     it 'runs blocks once Peribot is configured' do
+      Peribot.instance_eval { @conf_promise = nil }
       value = nil
       Peribot.when_configured { value = 'It worked!' }
       Peribot.configure {}.value
