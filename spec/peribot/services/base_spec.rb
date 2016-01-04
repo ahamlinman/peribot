@@ -176,22 +176,12 @@ describe Peribot::Services::Base do
         end
       end
 
-      it 'allows other handlers to work' do
-        # Silencing stderr only for this test
-        original_stderr = $stderr
-        $stderr = File.open(File::NULL, 'w')
-
+      it 'sends one message and logs an error' do
         expect(postprocessor).to receive(:accept).with(reply)
+        expect(bot).to receive(:log)
 
         instance = subclass.new bot, postprocessor
         instance.accept(message).value
-
-        $stderr = original_stderr
-      end
-
-      it 'logs the error to stderr' do
-        instance = subclass.new bot, postprocessor
-        expect { instance.accept(message).value }.to output.to_stderr
       end
     end
   end
