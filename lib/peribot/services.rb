@@ -21,7 +21,8 @@ module Peribot
     def dispatch(message)
       Concurrent::Future.execute do
         @list.map do |service|
-          service.new.accept message
+          instance = service.new Peribot, Peribot::Postprocessor.instance
+          instance.accept message
         end
       end
     end
