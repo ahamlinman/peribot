@@ -29,8 +29,9 @@ describe Peribot do
   end
 
   describe '.when_configured' do
+    before(:each) { Peribot.reset }
+
     it 'runs blocks once Peribot is configured' do
-      Peribot.instance_eval { @conf_promise = nil }
       value = nil
       Peribot.when_configured { value = 'It worked!' }
       Peribot.configure {}.value
@@ -41,7 +42,7 @@ describe Peribot do
 
   describe '.config' do
     context 'before configuration' do
-      before(:each) { Peribot.instance_eval { @config_builder = nil } }
+      before(:each) { Peribot.reset }
 
       it 'raises an error' do
         expect { Peribot.config }.to raise_error('Peribot is not configured')
@@ -86,7 +87,7 @@ describe Peribot do
     let!(:dir) { Dir.mktmpdir }
 
     context 'before configuration' do
-      before(:each) { Peribot.instance_eval { @store_map = nil } }
+      before(:each) { Peribot.reset }
 
       it 'raises an error' do
         expect { Peribot.store('') }.to raise_error('Peribot is not configured')
