@@ -28,6 +28,16 @@ describe Peribot do
     end
   end
 
+  describe '.when_configured' do
+    it 'runs blocks once Peribot is configured' do
+      value = nil
+      Peribot.when_configured { value = 'It worked!' }
+      Peribot.configure {}.value
+
+      expect(value).to eq('It worked!')
+    end
+  end
+
   describe '.config' do
     context 'before configuration' do
       before(:each) { Peribot.instance_eval { @config_builder = nil } }
