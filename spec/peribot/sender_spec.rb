@@ -1,6 +1,10 @@
 require 'spec_helper'
-require 'shared_examples/middleware'
 
 describe Peribot::Sender do
-  it_behaves_like 'a middleware chain'
+  describe '.instance' do
+    it 'returns a middleware chain' do
+      instance = Peribot::Sender.instance
+      expect(instance).to be_instance_of(Peribot::Middleware::Chain)
+    end
+  end
 end
