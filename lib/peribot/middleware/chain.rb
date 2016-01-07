@@ -72,7 +72,7 @@ module Peribot
       # @return [Concurrent::Promise] The promise with additional children
       def chain_tasks(promise)
         @tasks.reduce(promise) do |current_chain, task|
-          current_chain.then { |msg| task.new.process msg }
+          current_chain.then { |msg| task.new(@bot).process msg }
         end
       end
     end

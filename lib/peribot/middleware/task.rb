@@ -5,6 +5,12 @@ module Peribot
     # and pass them on to other middleware tasks or other parts of the Peribot
     # message chain.
     class Task
+      # Create a new instance of this middleware task.
+      #
+      # @param _bot_ [Peribot] A Peribot instance
+      def initialize(_bot_)
+      end
+
       # Process a message within this middleware task. This method may perform
       # one of the following actions:
       # * Return the message unchanged

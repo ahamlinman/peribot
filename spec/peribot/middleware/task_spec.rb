@@ -1,7 +1,8 @@
 require 'spec_helper'
 
 describe Peribot::Middleware::Task do
-  let(:task) { Peribot::Middleware::Task.new }
+  let(:bot) { class_double(Peribot) }
+  let(:task) { Peribot::Middleware::Task.new bot }
 
   describe '#process' do
     it 'fails when not implemented' do
