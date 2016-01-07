@@ -9,7 +9,7 @@ module Peribot
     class << self
       # Create a chain to be used for sending.
       def instance
-        @instance ||= Peribot::Middleware::Chain.new
+        @instance ||= Peribot::Middleware::Chain.new(Peribot)
       end
     end
   end

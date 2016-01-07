@@ -16,9 +16,12 @@ module Peribot
       # Create a new middleware chain. A block may be passed in order to define
       # the end action for this chain - that is, where messages are passed once
       # processing is completed.
-      def initialize(&end_action)
-        @end_action = end_action if block_given?
+      #
+      # @param bot [Peribot] A Peribot instance (for config, storage, etc.)
+      def initialize(bot, &end_action)
+        @bot = bot
         @tasks = []
+        @end_action = end_action if block_given?
       end
       attr_reader :tasks
 
@@ -53,9 +56,9 @@ module Peribot
         promise = promise.then(&@end_action) if @end_action
 
         promise.rescue do |e|
-          Peribot.log "#{self.class}: Message processing stopped\n"\
-                      "  => message = #{message.inspect}\n"\
-                      "  => exception = #{e.inspect}"
+          @bot.log "#{self.class}: Message processing stopped\n"\
+                   "  => message = #{message.inspect}\n"\
+                   "  => exception = #{e.inspect}"
         end
       end
 

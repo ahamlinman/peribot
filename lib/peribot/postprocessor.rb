@@ -7,7 +7,7 @@ module Peribot
     class << self
       # Create a chain to be used for postprocessing.
       def instance
-        @instance ||= Peribot::Middleware::Chain.new do |msg|
+        @instance ||= Peribot::Middleware::Chain.new(Peribot) do |msg|
           Peribot::Sender.instance.accept msg
         end
       end

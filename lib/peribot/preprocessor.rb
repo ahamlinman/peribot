@@ -9,7 +9,7 @@ module Peribot
     class << self
       # Create a chain to be used for preprocessing.
       def instance
-        @instance ||= Peribot::Middleware::Chain.new do |msg|
+        @instance ||= Peribot::Middleware::Chain.new(Peribot) do |msg|
           Peribot::Services.dispatch msg
         end
       end
