@@ -1,3 +1,4 @@
+require 'peribot/bot'
 require 'peribot/configuration'
 require 'peribot/middleware'
 require 'peribot/preprocessor'
