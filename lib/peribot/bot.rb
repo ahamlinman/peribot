@@ -1,4 +1,5 @@
 require 'peribot/bot/configuration'
+require 'peribot/bot/stores'
 
 module Peribot
   # A class representing a Peribot instance, which registers services and
