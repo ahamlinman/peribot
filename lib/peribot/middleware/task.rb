@@ -16,6 +16,19 @@ module Peribot
       def process(_message_)
         fail "process method not implemented in #{self.class}"
       end
+
+      # Stop further processing of this message in this pipeline. This prevents
+      # any further tasks in the middleware chain, including the end action,
+      # from running. However, it will not raise any error or give any other
+      # indication that processing has stopped.
+      #
+      # Within the preprocessing and postprocessing chains, this is effectively
+      # the same as discarding a message. Thus, this method may also be called
+      # as discard_message.
+      def stop_processing
+        fail Peribot::Middleware::Stop
+      end
+      alias_method :discard_message, :stop_processing
     end
   end
 end
