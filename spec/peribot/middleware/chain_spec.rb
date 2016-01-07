@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Peribot::Middleware::Chain do
-  let(:bot) { Peribot }
+  let(:bot) { class_double(Peribot) }
   let(:instance) { Peribot::Middleware::Chain.new bot }
 
   it 'contains an accessible list of tasks' do
@@ -47,7 +47,7 @@ describe Peribot::Middleware::Chain do
     end
 
     context 'with a task raising an error' do
-      it 'logs to stderr' do
+      it 'outputs a log via the bot' do
         task = Class.new(Peribot::Middleware::Task) do
           def process(*)
             fail 'just testing'
@@ -55,7 +55,8 @@ describe Peribot::Middleware::Chain do
         end
         instance.register task
 
-        expect { instance.accept({}).value }.to output.to_stderr
+        expect(bot).to receive(:log)
+        instance.accept({}).value
       end
     end
   end
