@@ -5,8 +5,12 @@ module Peribot
   # Peribot to GroupMe. It is possible for multiple senders to be useful - e.g.
   # a separate sender task may be used to like messages, or multiple messaging
   # services might be possible in the future.
-  #
-  # @see Peribot::Middleware::Chain
-  class Sender < Peribot::Middleware::Chain
+  class Sender
+    class << self
+      # Create a chain to be used for sending.
+      def instance
+        @instance ||= Peribot::Middleware::Chain.new
+      end
+    end
   end
 end
