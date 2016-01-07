@@ -1,13 +1,11 @@
 require 'peribot/middleware/chain'
+require 'peribot/middleware/stop'
 require 'peribot/middleware/task'
 
 module Peribot
   # The Middleware module provides classes whose functionality underlies the
-  # preprocessing, postprocessing, and sending chains in Peribot.
-  #
-  # @see Peribot::Preprocessor
-  # @see Peribot::Postprocessor
-  # @see Peribot::Sender
+  # preprocessing, postprocessing, and sending middleware chains in a Peribot
+  # instance.
   module Middleware
   end
 end

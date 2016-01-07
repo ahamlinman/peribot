@@ -59,5 +59,23 @@ describe Peribot::Middleware::Chain do
         instance.accept({}).value
       end
     end
+
+    context 'with a task raising Peribot::Middleware::Stop' do
+      it 'stops processing without logging' do
+        chain = Peribot::Middleware::Chain.new(bot) do
+          fail 'the end action was reached'
+        end
+
+        task = Class.new(Peribot::Middleware::Task) do
+          def process(*)
+            fail Peribot::Middleware::Stop, 'this should not be seen'
+          end
+        end
+        chain.register task
+
+        expect(bot).to_not receive(:log)
+        chain.accept({}).value
+      end
+    end
   end
 end
