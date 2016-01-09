@@ -2,35 +2,39 @@ require 'concurrent'
 
 module Peribot
   # A base class for services in Peribot. While any class that implements
-  # #accept properly can act as a Peribot service, this class provides
+  # {#accept} properly can act as a Peribot service, this class provides
   # convenient functionality for writing services, including class methods to
   # register methods as message handlers and the ability to respond to messages
   # by simply returning a string.
   #
   # There are three types of handlers in this class: message handlers, command
-  # handlers, and listen handlers. See the documentation for on_message,
-  # on_command, and on_listen for more about each handler type.
+  # handlers, and listen handlers. See the documentation for {on_message},
+  # {on_command}, and {on_listen} for more about each handler type.
   #
-  # @example Register a message handler (a method that will be called with a
-  #          message any time one is received)
+  # @example A message handler
   #   def my_handler(message)
   #     do_stuff_with message
   #   end
+  #
+  #   # Register by passing the method name
   #   on_message :my_handler
   #
-  # @example Register a command handler (a method that will be called when a
-  #          command is detected)
+  # @example A command handler
   #   def my_command_handler(command, arguments, message)
   #     do_stuff_for command, arguments
   #   end
+  #
+  #   # Register by passing the command and method name
   #   on_command :dostuff, :my_command_handler
   #
-  # @example Register a listen handler (a method that will be called when
-  #          message text matches a regex)
+  # @example A listen handler
   #   def my_listen_handler(match_data, message)
   #     someone_mentioned match_data[1]
   #   end
-  #   on_listen /a (.*) handler/i, :my_listen_handler
+  #
+  #   # Register by passing the regex and method name
+  #   # (may also be called as on_listen)
+  #   on_hear /a (.*) handler/i, :my_listen_handler
   class Service
     class << self
       # Ensure that handler lists get set in subclasses, and allow them to be
@@ -57,9 +61,8 @@ module Peribot
       # message every time a message's text begins with a particular command. A
       # command is a hash (#) symbol followed by a word, while arguments make
       # up all text appearing after the command. For example, in a weather
-      # service, the command "#weather Seattle, WA" could obtain the weather
-      # for Seattle, while "#weather" could get the weather for a default
-      # location.
+      # service, the command "#weather Seattle, WA" would have "weather" as the
+      # command and "Seattle, WA" as the argument.
       #
       # @param command [Symbol] The command to look for
       # @param handler [Symbol] The name of the method to be called
@@ -77,6 +80,7 @@ module Peribot
       def on_hear(regex, handler)
         @listen_handlers[regex] = handler
       end
+      alias_method :on_listen, :on_hear
     end
 
     # Initialize a new service instance with a Peribot instance (that may be
@@ -165,7 +169,6 @@ module Peribot
     #
     # Get a proc that can be chained onto a promise to call a handler method.
     #
-    # @param handler [Symbol] The handler method to call
     # @param message [Hash] The message being processed
     #
     # @overload handler_proc(handler, message)

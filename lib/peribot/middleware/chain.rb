@@ -4,10 +4,10 @@ module Peribot
   module Middleware
     # This class is used to create middleware chains. A chain consists of a
     # number of tasks followed by an end action. A message is sent into the
-    # chain using the #accept method, where it is processed by each task before
-    # being passed to the end action. Each individual message is only processed
-    # by one task at a time, but all processing occurs asynchronously on
-    # background threads. That is, if a particular task is delayed in
+    # chain using the {#accept} method, where it is processed by each task
+    # before being passed to the end action. Each individual message is only
+    # processed by one task at a time, but all processing occurs asynchronously
+    # on background threads. That is, if a particular task is delayed in
     # processing a message, that particular message may be delayed. However,
     # the processing of other messages will not be affected.
     #
@@ -15,7 +15,7 @@ module Peribot
     # Specifically, Peribot uses middleware chains for preprocessing,
     # postprocessing, and sending messages. New chains are created by creating
     # new instances of this class. End actions are provided via a block passed
-    # to #new.
+    # to {#initialize}.
     class Chain
       # Create a new middleware chain.
       #

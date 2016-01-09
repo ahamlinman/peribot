@@ -1,14 +1,14 @@
 module Peribot
   module Middleware
     # Superclass representing a middleware task. Middleware tasks receive
-    # messages (via the process instance method), change them as appropriate,
-    # and pass them on to other middleware tasks or other parts of the Peribot
+    # messages (via the {#process} method), change them as appropriate, and
+    # pass them on to other middleware tasks or other parts of the Peribot
     # message chain.
     #
     # It is suggested that tasks extend this class for convenience, though any
-    # class that includes a #process method taking a message should be
+    # class that includes a {#process} method taking a message should be
     # acceptable. Keep in mind that all instances are initialized with a
-    # Peribot::Bot that provides various services for tasks and other
+    # {Peribot::Bot} that provides various services for tasks and other
     # components.
     class Task
       # Create a new instance of this middleware task.
