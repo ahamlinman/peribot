@@ -10,8 +10,6 @@ module Peribot
         # Ensure that handler lists get set in subclasses, and allow them to be
         # accessible.
         def inherited(subclass)
-          Peribot::Services.list << subclass
-
           subclass.instance_variable_set :@message_handlers, []
           subclass.instance_variable_set :@command_handlers, {}
           subclass.instance_variable_set :@listen_handlers, {}
