@@ -1,3 +1,5 @@
+require 'pstore'
+
 module Peribot
   class Bot
     # This module provides the implementation of Peribot's persistent storage
