@@ -1,23 +1,26 @@
 require 'concurrent'
-require 'singleton'
 
 module Peribot
   module Middleware
     # This class is used to create middleware chains. A chain consists of a
-    # number of tasks followed by an end action. A message is sent through the
-    # chain using the accept method, where it is asynchronously processed by
-    # each task before being passed to the end action.
+    # number of tasks followed by an end action. A message is sent into the
+    # chain using the #accept method, where it is processed by each task before
+    # being passed to the end action. Each individual message is only processed
+    # by one task at a time, but all processing occurs asynchronously on
+    # background threads. That is, if a particular task is delayed in
+    # processing a message, that particular message may be delayed. However,
+    # the processing of other messages will not be affected.
     #
-    # Peribot uses middleware chains for preprocessing, postprocessing, and
-    # sending messages. New chains are created by creating new instances of
-    # this class. End actions are provided via a block passed to
-    # Peribot::Middleware::Chain.new.
+    # This class is designed and intended for internal use within Peribot.
+    # Specifically, Peribot uses middleware chains for preprocessing,
+    # postprocessing, and sending messages. New chains are created by creating
+    # new instances of this class. End actions are provided via a block passed
+    # to #new.
     class Chain
-      # Create a new middleware chain. A block may be passed in order to define
-      # the end action for this chain - that is, where messages are passed once
-      # processing is completed.
+      # Create a new middleware chain.
       #
       # @param bot [Peribot] A Peribot instance (for config, storage, etc.)
+      # @yield [message] A message, processed by all tasks in the chain
       def initialize(bot, &end_action)
         @bot = bot
         @tasks = []
@@ -44,12 +47,14 @@ module Peribot
 
       private
 
+      # (private)
+      #
       # Construct a promise chain for the given message. This is essentially a
-      # task that gets run on a thread pool in order to process the message
-      # using the middleware tasks defined for this chain.
+      # task that gets run asynchronously on a thread pool, which will process
+      # the message using the middleware tasks defined for this chain.
       #
       # @param message [Hash] The message to process
-      # @return [Concurrent::Promise] The unscheduled promise chain
+      # @return [Concurrent::Promise] The full promise chain for the message
       def promise_chain(message)
         promise = Concurrent::Promise.fulfill message
         promise = chain_tasks promise

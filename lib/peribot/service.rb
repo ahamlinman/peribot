@@ -1,9 +1,36 @@
 require 'concurrent'
 
 module Peribot
-  # Base class for all Peribot services. This provides the on_message,
-  # on_command, and on_hear class methods, and ensures that all services are
-  # properly registered so that they can receive messages.
+  # A base class for services in Peribot. While any class that implements
+  # #accept properly can act as a Peribot service, this class provides
+  # convenient functionality for writing services, including class methods to
+  # register methods as message handlers and the ability to respond to messages
+  # by simply returning a string.
+  #
+  # There are three types of handlers in this class: message handlers, command
+  # handlers, and listen handlers. See the documentation for on_message,
+  # on_command, and on_listen for more about each handler type.
+  #
+  # @example Register a message handler (a method that will be called with a
+  #          message any time one is received)
+  #   def my_handler(message)
+  #     do_stuff_with message
+  #   end
+  #   on_message :my_handler
+  #
+  # @example Register a command handler (a method that will be called when a
+  #          command is detected)
+  #   def my_command_handler(command, arguments, message)
+  #     do_stuff_for command, arguments
+  #   end
+  #   on_command :dostuff, :my_command_handler
+  #
+  # @example Register a listen handler (a method that will be called when
+  #          message text matches a regex)
+  #   def my_listen_handler(match_data, message)
+  #     someone_mentioned match_data[1]
+  #   end
+  #   on_listen /a (.*) handler/i, :my_listen_handler
   class Service
     class << self
       # Ensure that handler lists get set in subclasses, and allow them to be
@@ -27,8 +54,12 @@ module Peribot
       end
 
       # Register a method that will be called with a command, arguments, and
-      # message every time a message's text begins with a particular command
-      # (e.g. #command).
+      # message every time a message's text begins with a particular command. A
+      # command is a hash (#) symbol followed by a word, while arguments make
+      # up all text appearing after the command. For example, in a weather
+      # service, the command "#weather Seattle, WA" could obtain the weather
+      # for Seattle, while "#weather" could get the weather for a default
+      # location.
       #
       # @param command [Symbol] The command to look for
       # @param handler [Symbol] The name of the method to be called
@@ -37,7 +68,9 @@ module Peribot
       end
 
       # Register a method that will be called with match data and a message
-      # object every time a message's text matches a particular regex.
+      # object every time a message's text matches a particular regex. Note
+      # that if you desire a case-insensitive match, you must include this
+      # option in your regex.
       #
       # @param regex [Regexp] The regex to use when matching messages
       # @param handler [Symbol] The name of the method to be called
@@ -51,7 +84,7 @@ module Peribot
     # object that can receive :accept with completed messages to send).
     #
     # @param bot [Peribot] A Peribot object
-    # @param acceptor [Peribot::Middleware::Chain] Receives reply messages
+    # @param acceptor A class implementing #accept that will receive replies
     def initialize(bot, acceptor)
       @bot = bot
       @acceptor = acceptor
@@ -74,6 +107,8 @@ module Peribot
 
     private
 
+    # (private)
+    #
     # Chain calls to appropriate handler methods onto the given promise.
     #
     # @param promise [Concurrent::Promise] The initial promise
@@ -85,6 +120,8 @@ module Peribot
       chain_listen_handlers promise, message
     end
 
+    # (private)
+    #
     # Chain calls to message handlers onto a promise.
     #
     # @see chain_handlers
@@ -94,6 +131,8 @@ module Peribot
       end
     end
 
+    # (private)
+    #
     # Chain calls to command handlers onto a promise
     #
     # @see chain_handlers
@@ -108,6 +147,8 @@ module Peribot
       end
     end
 
+    # (private)
+    #
     # Chain calls to listen handlers onto a promise
     #
     # @see chain_handlers
@@ -120,6 +161,8 @@ module Peribot
       end
     end
 
+    # (private)
+    #
     # Get a proc that can be chained onto a promise to call a handler method.
     #
     # @param handler [Symbol] The handler method to call
@@ -149,15 +192,20 @@ module Peribot
       end
     end
 
-    # Send any messages created by handlers to the postprocessing chain.
+    # (private)
     #
-    # @param message [Hash] The message being processed
+    # Send any messages created by handlers to the acceptor.
+    #
+    # @param replies [Array] Replies from handlers in this service
+    # @param original [Hash] The original message that handlers responded to
     def end_action(replies, original)
       msgs = replies.flatten.reject(&:nil?)
       msgs = convert_strings_to_replies msgs, original
       msgs.each { |msg| @acceptor.accept msg }
     end
 
+    # (private)
+    #
     # Normalize an array containing mixed strings and messages so that it
     # only contains message hashes.
     #
@@ -171,17 +219,21 @@ module Peribot
       end
     end
 
+    # (private)
+    #
     # Handle errors in message processing by printing the error to stderr.
     #
     # @param error [Exception] The error that was raised
     # @param message [Hash] The message being processed
     def failure_action(error, message)
       @bot.log "#{self.class}: Error while processing message\n"\
-        "  => message = #{message.inspect}\n"\
-      "  => exception = #{error.inspect}\n"\
-      "  => backtrace:\n#{format_backtrace error.backtrace}"
+               "  => message = #{message.inspect}\n"\
+               "  => exception = #{error.inspect}\n"\
+               "  => backtrace:\n#{format_backtrace error.backtrace}"
     end
 
+    # (private)
+    #
     # Format an exception backtrace for printing to the log.
     #
     # @param backtrace [Array<String>] Lines of the backtrace

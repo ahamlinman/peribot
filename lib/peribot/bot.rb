@@ -11,7 +11,12 @@ module Peribot
     include Peribot::Bot::Stores
 
     # Create a new Peribot instance and set up its basic configuration options.
+    #
+    # @param options [Hash] Options for this bot instance
+    # @option options [String] :config_directory Directory with config files
+    # @option options [String] :store_directory Directory for persistent stores
     def initialize(options = {})
+      # See bot/configuration.rb and bot/stores.rb
       setup_config_directory options[:config_directory]
       setup_store_directory options[:store_directory]
 
@@ -23,6 +28,8 @@ module Peribot
 
     # Register a service with this Peribot instance. It will be instantiated
     # and used to process each message that this bot receives.
+    #
+    # @param service [Class] A service that should receive messages
     def register(service)
       @services << service
     end
@@ -30,13 +37,15 @@ module Peribot
     # A simple logging function for use by Peribot components. Outputs the
     # given message to stderr with a "[Peribot]" prefix.
     #
-    # @param message Text to output to stderr
+    # @param message Text or other item to output to stderr
     def log(message)
       $stderr.puts "[Peribot] #{message}"
     end
 
     private
 
+    # (private)
+    #
     # Set up preprocessing, postprocessing, and sending chains for this bot
     # instance.
     def setup_middleware_chains
@@ -51,9 +60,12 @@ module Peribot
       @sender = Peribot::Middleware::Chain.new(self)
     end
 
+    # (private)
+    #
     # Dispatch a message to all services in this bot instance.
     #
     # @param message [Hash] The message to send to services
+    # @return The return values of #accept for each service
     def dispatch(message)
       @services.map do |service|
         instance = service.new self, @postprocessor
