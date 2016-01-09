@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe Peribot::Services::Base do
+describe Peribot::Service do
   it 'supports message handlers in subclasses' do
-    subclass = Class.new(Peribot::Services::Base) do
+    subclass = Class.new(Peribot::Service) do
       def test(*); end
       on_message :test
     end
@@ -11,7 +11,7 @@ describe Peribot::Services::Base do
   end
 
   it 'supports command handlers in subclasses' do
-    subclass = Class.new(Peribot::Services::Base) do
+    subclass = Class.new(Peribot::Service) do
       def test(*); end
       on_command :cmd, :test
     end
@@ -20,7 +20,7 @@ describe Peribot::Services::Base do
   end
 
   it 'supports listen handlers in subclasses' do
-    subclass = Class.new(Peribot::Services::Base) do
+    subclass = Class.new(Peribot::Service) do
       def test(*); end
       on_hear(/match/, :test)
     end
@@ -29,7 +29,7 @@ describe Peribot::Services::Base do
   end
 
   describe '#accept' do
-    let(:base) { Peribot::Services::Base }
+    let(:base) { Peribot::Service }
     let(:message) { { 'group_id' => '1234', 'text' => '#test this' }.freeze }
     let(:reply) { { 'group_id' => '1234', 'text' => 'Success!' } }
     let(:bot) { instance_double(Peribot::Bot) }

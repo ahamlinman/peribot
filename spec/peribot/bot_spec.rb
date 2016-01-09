@@ -12,7 +12,7 @@ describe Peribot::Bot do
   end
 
   let(:service) do
-    Class.new(Peribot::Services::Base) do
+    Class.new(Peribot::Service) do
       def handle(*)
         { 'group_id' => '0', 'text' => 'Reply' }
       end
@@ -33,7 +33,7 @@ describe Peribot::Bot do
   end
 
   describe '#register' do
-    let(:service) { Class.new(Peribot::Services::Base) }
+    let(:service) { Class.new(Peribot::Service) }
 
     it 'adds a service to the service list' do
       instance.register service
@@ -49,7 +49,7 @@ describe Peribot::Bot do
 
   describe '#preprocessor' do
     let(:service) do
-      Class.new(Peribot::Services::Base) do
+      Class.new(Peribot::Service) do
         def handle(message)
           puts message.inspect
         end
