@@ -41,7 +41,7 @@ describe Peribot::Services::Base do
     let(:base) { Peribot::Services::Base }
     let(:message) { { 'group_id' => '1234', 'text' => '#test this' }.freeze }
     let(:reply) { { 'group_id' => '1234', 'text' => 'Success!' } }
-    let(:bot) { class_double(Peribot) }
+    let(:bot) { instance_double(Peribot::Bot) }
     let(:postprocessor) { instance_double(Peribot::Middleware::Chain) }
 
     it 'returns a promise' do

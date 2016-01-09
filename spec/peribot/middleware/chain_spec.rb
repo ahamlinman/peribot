@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Peribot::Middleware::Chain do
-  let(:bot) { class_double(Peribot) }
+  let(:bot) { instance_double(Peribot::Bot) }
   let(:instance) { Peribot::Middleware::Chain.new bot }
 
   it 'contains an accessible list of tasks' do
