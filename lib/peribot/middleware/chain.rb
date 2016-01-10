@@ -65,7 +65,7 @@ module Peribot
         promise.rescue do |e|
           next if e.instance_of? Peribot::Middleware::Stop
 
-          @bot.log "#{self.class}: Message processing stopped\n"\
+          @bot.log "Error in processing chain:\n"\
                    "  => message = #{message.inspect}\n"\
                    "  => exception = #{e.inspect}"
         end
