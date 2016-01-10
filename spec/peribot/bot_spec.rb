@@ -20,16 +20,16 @@ describe Peribot::Bot do
     end
   end
 
-  it 'has a preprocessor chain' do
-    expect(instance.preprocessor).to be_instance_of(Peribot::Middleware::Chain)
+  it 'has a preprocessor' do
+    expect(instance.preprocessor).to respond_to(:accept)
   end
 
-  it 'has a postprocessor chain' do
-    expect(instance.postprocessor).to be_instance_of(Peribot::Middleware::Chain)
+  it 'has a postprocessor' do
+    expect(instance.postprocessor).to respond_to(:accept)
   end
 
-  it 'has a sender chain' do
-    expect(instance.sender).to be_instance_of(Peribot::Middleware::Chain)
+  it 'has a sender' do
+    expect(instance.sender).to respond_to(:accept)
   end
 
   describe '#register' do
