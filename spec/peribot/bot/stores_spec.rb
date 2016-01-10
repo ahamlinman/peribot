@@ -40,6 +40,10 @@ describe Peribot::Bot::Stores do
       expect(instance.store('test')).to equal(instance.store('test'))
     end
 
+    it 'defaults to an empty hash as its value' do
+      expect(instance.store('test').value).to eq({})
+    end
+
     it 'creates a persistent store file when writing' do
       instance.store('test').swap { 'It works!' }
 
