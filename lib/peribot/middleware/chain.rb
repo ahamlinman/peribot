@@ -29,11 +29,13 @@ module Peribot
       attr_reader :tasks
 
       # Register a task with this middleware chain. The given task will be
-      # instantiated and used to process the message.
+      # instantiated and used to process the message. Tasks will only be
+      # registered once regardless of how many times this method is called with
+      # one.
       #
       # @param task [Class] A class with a #process method taking a message
       def register(task)
-        @tasks << task
+        @tasks << task unless @tasks.include? task
       end
 
       # Begin processing a message using the tasks defined for this middleware

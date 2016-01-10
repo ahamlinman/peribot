@@ -27,11 +27,13 @@ module Peribot
     attr_reader :preprocessor, :postprocessor, :sender, :services
 
     # Register a service with this Peribot instance. It will be instantiated
-    # and used to process each message that this bot receives.
+    # and used to process each message that this bot receives. Services will
+    # only be registered once regardless of how many times this method is
+    # called with one.
     #
     # @param service [Class] A service that should receive messages
     def register(service)
-      @services << service
+      @services << service unless @services.include? service
     end
 
     # A simple logging function for use by Peribot components. Outputs the

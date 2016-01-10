@@ -9,11 +9,19 @@ describe Peribot::Middleware::Chain do
   end
 
   describe '#register' do
+    let(:task) { Class.new(Peribot::Middleware::Task) }
+
     it 'adds a task to the task list' do
-      task = Class.new(Peribot::Middleware::Task)
       instance.register task
 
       expect(instance.tasks).to include(task)
+    end
+
+    it 'does not add tasks more than once' do
+      instance.register task
+      instance.register task
+
+      expect(instance.tasks.count(task)).to eq(1)
     end
   end
 

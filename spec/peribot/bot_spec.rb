@@ -39,6 +39,13 @@ describe Peribot::Bot do
       instance.register service
       expect(instance.services).to include(service)
     end
+
+    it 'does not add services more than once' do
+      instance.register service
+      instance.register service
+
+      expect(instance.services.count(service)).to eq(1)
+    end
   end
 
   describe '#log' do
