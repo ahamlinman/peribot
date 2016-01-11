@@ -1,11 +1,15 @@
 require 'concurrent'
 
 module Peribot
-  # A base class for services in Peribot. While any class that implements
-  # {#accept} properly can act as a Peribot service, this class provides
-  # convenient functionality for writing services, including class methods to
-  # register methods as message handlers and the ability to respond to messages
-  # by simply returning a string.
+  # A base class for services in Peribot. Services provide most of Peribot's
+  # serious functionality by processing messages received from groups and
+  # creating replies to be sent in return. Messages are immutable (frozen)
+  # hashes containing, at minimum, values for 'group_id' and 'text'.
+  #
+  # While any class that implements {#accept} properly can act as a Peribot
+  # service, this class provides convenient functionality for writing services,
+  # including class methods to register methods as message handlers and the
+  # ability to respond to messages by simply returning a string.
   #
   # There are three types of handlers in this class: message handlers, command
   # handlers, and listen handlers. See the documentation for {on_message},

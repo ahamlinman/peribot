@@ -52,7 +52,7 @@ module Peribot
     # instance.
     def setup_middleware_chains
       @preprocessor = Peribot::Middleware::Chain.new(self) do |message|
-        dispatch message
+        dispatch message.freeze
       end
 
       @postprocessor = Peribot::Middleware::Chain.new(self) do |message|
