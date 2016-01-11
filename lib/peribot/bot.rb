@@ -26,6 +26,16 @@ module Peribot
     end
     attr_reader :preprocessor, :postprocessor, :sender, :services
 
+    # Send a message to this bot instance and process it through all middleware
+    # chains and services. This method is really just a convenient way to send
+    # a message to the preprocessor, but it is recommended rather than invoking
+    # the preprocessor's #accept method directly.
+    #
+    # @param message [Hash] The message to process
+    def accept(message)
+      @preprocessor.accept message
+    end
+
     # Register a service with this Peribot instance. It will be instantiated
     # and used to process each message that this bot receives. Services will
     # only be registered once regardless of how many times this method is

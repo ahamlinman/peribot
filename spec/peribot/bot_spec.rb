@@ -32,6 +32,13 @@ describe Peribot::Bot do
     expect(instance.sender).to respond_to(:accept)
   end
 
+  describe '#accept' do
+    it 'sends messages to the preprocessor' do
+      expect(instance.preprocessor).to receive(:accept).with({})
+      instance.accept({})
+    end
+  end
+
   describe '#register' do
     let(:service) { Class.new(Peribot::Service) }
 
