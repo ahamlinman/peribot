@@ -87,6 +87,36 @@ describe Peribot::Service do
       end
     end
 
+    context 'with multiple command handlers' do
+      let(:subclass) do
+        Class.new(base) do
+          def test_handler(*)
+            'first test'
+          end
+          on_command :test, :test_handler
+
+          def testing_handler(*)
+            'second test'
+          end
+          on_command :testing, :testing_handler
+        end
+      end
+
+      it 'does not reply when only part of a command matches' do
+        expect(postprocessor).to receive(:accept).once
+
+        instance = subclass.new bot, postprocessor
+        instance.accept('group_id' => '1', 'text' => '#testing').value
+      end
+
+      it 'does not reply when only part of a command with argument matches' do
+        expect(postprocessor).to receive(:accept).once
+
+        instance = subclass.new bot, postprocessor
+        instance.accept('group_id' => '1', 'text' => '#testing now').value
+      end
+    end
+
     context 'with a listen handler' do
       let(:subclass) do
         Class.new(base) do
