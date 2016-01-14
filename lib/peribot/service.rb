@@ -146,7 +146,8 @@ module Peribot
     # @see chain_handlers
     def chain_command_handlers(promise, message)
       self.class.command_handlers.reduce(promise) do |prom, (cmd, handler)|
-        next prom unless message['text'].match(/\A##{cmd}(?: |\z)/)
+        safe_cmd = Regexp.quote(cmd)
+        next prom unless message['text'].match(/\A##{safe_cmd}(?: |\z)/)
 
         args = message['text'].split[1..-1].join(' ')
         args = nil if args.length == 0

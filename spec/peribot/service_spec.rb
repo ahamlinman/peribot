@@ -66,24 +66,48 @@ describe Peribot::Service do
             { 'group_id' => message['group_id'], 'text' => 'Success!' }
           end
           on_command :test, :test_handler
+          on_command :'my.cmd', :test_handler
         end
       end
 
-      it 'replies to messages with commands' do
-        expect(postprocessor).to receive(:accept).with(reply)
+      context 'with commands not containing special chars' do
+        it 'replies to messages with commands' do
+          expect(postprocessor).to receive(:accept).with(reply)
 
-        instance = subclass.new bot, postprocessor
-        instance.accept(message).value
+          instance = subclass.new bot, postprocessor
+          instance.accept(message).value
+        end
+
+        it 'does not reply to messages without commands' do
+          expect(postprocessor).to_not receive(:accept)
+
+          bad_msg = message.dup
+          bad_msg['text'] = 'Do not process this!'
+
+          instance = subclass.new bot, postprocessor
+          instance.accept(bad_msg).value
+        end
       end
 
-      it 'does not reply to messages without commands' do
-        expect(postprocessor).to_not receive(:accept)
+      context 'with commands containing special chars' do
+        let(:message) { { 'group_id' => '1234', 'text' => '#my.cmd' }.freeze }
 
-        bad_msg = message.dup
-        bad_msg['text'] = 'Do not process this!'
+        it 'replies to messages with commands' do
+          expect(postprocessor).to receive(:accept).with(reply)
 
-        instance = subclass.new bot, postprocessor
-        instance.accept(bad_msg).value
+          instance = subclass.new bot, postprocessor
+          instance.accept(message).value
+        end
+
+        it 'does not reply to messages without commands' do
+          expect(postprocessor).to_not receive(:accept)
+
+          bad_msg = message.dup
+          bad_msg['text'] = '#my cmd'
+
+          instance = subclass.new bot, postprocessor
+          instance.accept(bad_msg).value
+        end
       end
     end
 
