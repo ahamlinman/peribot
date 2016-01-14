@@ -58,7 +58,7 @@ module Peribot
       #
       # @param handler [Symbol] The name of the method to be called
       def on_message(handler)
-        @message_handlers << handler
+        @message_handlers << handler unless @message_handlers.include? handler
       end
 
       # Register a method that will be called with a command, arguments, and

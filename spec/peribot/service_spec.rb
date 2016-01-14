@@ -205,5 +205,24 @@ describe Peribot::Service do
         instance.accept(message).value
       end
     end
+
+    context 'with a message handler registered multiple times' do
+      let(:subclass) do
+        Class.new(base) do
+          def message(*)
+            'Message!'
+          end
+          on_message :message
+          on_message :message
+        end
+      end
+
+      it 'only calls message handlers once' do
+        expect(postprocessor).to receive(:accept).once
+
+        instance = subclass.new bot, postprocessor
+        instance.accept('group_id' => '1', 'text' => 'message').value
+      end
+    end
   end
 end
