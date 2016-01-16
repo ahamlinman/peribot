@@ -162,12 +162,28 @@ module Peribot
     #
     # @see chain_handlers
     def chain_listen_handlers(promise, message)
-      self.class.listen_handlers.reduce(promise) do |prom, (regex, handler)|
-        next prom unless message['text'] =~ regex
-
-        match = regex.match message['text']
+      listen_matches(message).reduce(promise) do |prom, (handler, match)|
         prom.then(&handler_proc(handler, match, message))
       end
+    end
+
+    # (private)
+    #
+    # Obtain a deduplicated list of listen handlers and associated regex match
+    # data for a given message. As different regexes can correspond to the same
+    # handler, this ensures that a given handler is only called once for a
+    # particular message no matter how many matches there are. It also ensures
+    # that regexes registered first take priority when determining which match
+    # data is included.
+    #
+    # @param message [Hash] The message being processed
+    # @return [Hash] A map from handler functions to match data
+    def listen_matches(message)
+      handlers = self.class.listen_handlers.map do |regex, handler|
+        next unless message['text'] =~ regex
+        [handler, regex.match(message['text'])]
+      end
+      Hash[handlers.compact.uniq(&:first)]
     end
 
     # (private)

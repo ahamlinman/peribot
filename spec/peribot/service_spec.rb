@@ -248,5 +248,33 @@ describe Peribot::Service do
         instance.accept('group_id' => '1', 'text' => 'message').value
       end
     end
+
+    context 'with a listen handler registered multiple times' do
+      let(:subclass) do
+        Class.new(base) do
+          def listen(match, _)
+            match[1]
+          end
+          on_hear(/(simple) test/, :listen)
+          on_hear(/simple (test)/, :listen)
+        end
+      end
+      let(:message) { { 'group_id' => '1', 'text' => 'simple test' } }
+      let(:reply) { { 'group_id' => '1', 'text' => 'simple' } }
+
+      it 'only calls the handler once' do
+        expect(postprocessor).to receive(:accept).once
+
+        instance = subclass.new bot, postprocessor
+        instance.accept(message).value
+      end
+
+      it 'calls the handler with data for the first regex' do
+        expect(postprocessor).to receive(:accept).with(reply)
+
+        instance = subclass.new bot, postprocessor
+        instance.accept(message).value
+      end
+    end
   end
 end
