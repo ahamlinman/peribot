@@ -45,7 +45,7 @@ module Peribot
       def stop_processing
         fail Peribot::Middleware::Stop
       end
-      alias_method :discard_message, :stop_processing
+      alias discard_message stop_processing
     end
   end
 end

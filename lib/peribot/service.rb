@@ -84,7 +84,7 @@ module Peribot
       def on_hear(regex, handler)
         @listen_handlers[regex] = handler
       end
-      alias_method :on_listen, :on_hear
+      alias on_listen on_hear
     end
 
     # Initialize a new service instance with a Peribot instance (that may be
