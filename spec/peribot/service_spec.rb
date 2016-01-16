@@ -249,6 +249,25 @@ describe Peribot::Service do
       end
     end
 
+    context 'with a command handler registered multiple times' do
+      let(:subclass) do
+        Class.new(base) do
+          def command(*)
+            'Command!'
+          end
+          on_command :test, :command
+          on_command :test, :command
+        end
+      end
+
+      it 'only calls command handlers once' do
+        expect(postprocessor).to receive(:accept).once
+
+        instance = subclass.new bot, postprocessor
+        instance.accept('group_id' => '1', 'text' => '#test').value
+      end
+    end
+
     context 'with a listen handler registered multiple times' do
       let(:subclass) do
         Class.new(base) do
