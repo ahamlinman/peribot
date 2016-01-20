@@ -108,7 +108,7 @@ module Peribot
     def accept(message)
       promise = Concurrent::Promise.fulfill []
       promise = chain_handlers promise, message
-      promise = promise.then { |msgs| end_action msgs, message }
+      promise = promise.then { |msgs| end_action msgs, message['group_id'] }
 
       promise.execute
     end
@@ -221,10 +221,10 @@ module Peribot
     # Send any messages created by handlers to the acceptor.
     #
     # @param replies [Array] Replies from handlers in this service
-    # @param original [Hash] The original message that handlers responded to
-    def end_action(replies, original)
+    # @param gid [String] The default group to reply to (if not in a message)
+    def end_action(replies, gid)
       msgs = replies.flatten.reject(&:nil?)
-      msgs = convert_strings_to_replies msgs, original
+      msgs = convert_strings_to_replies msgs, gid
       msgs.each { |msg| @acceptor.accept msg }
     end
 
@@ -234,12 +234,12 @@ module Peribot
     # only contains message hashes.
     #
     # @param replies [Array] An array of replies to a message
-    # @param original [Hash] The original message
+    # @param gid [String] A group to reply to when a message does not have one
     # @return [Array<Hash>] A normalized array of replies
-    def convert_strings_to_replies(replies, original)
+    def convert_strings_to_replies(replies, gid)
       replies.map do |reply|
         next reply unless reply.is_a? String
-        { 'group_id' => original['group_id'], 'text' => reply }
+        { 'group_id' => gid, 'text' => reply }
       end
     end
 
