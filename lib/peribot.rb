@@ -1,5 +1,5 @@
 require 'peribot/bot'
-require 'peribot/middleware'
+require 'peribot/processor'
 require 'peribot/processor_chain'
 require 'peribot/service'
 require 'peribot/version'

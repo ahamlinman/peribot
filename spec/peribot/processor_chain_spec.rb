@@ -9,7 +9,7 @@ describe Peribot::ProcessorChain do
   end
 
   describe '#register' do
-    let(:task) { Class.new(Peribot::Middleware::Task) }
+    let(:task) { Class.new(Peribot::Processor) }
 
     it 'adds a task to the task list' do
       instance.register task
@@ -43,7 +43,7 @@ describe Peribot::ProcessorChain do
 
     context 'with one task' do
       it 'executes the task' do
-        task = Class.new(Peribot::Middleware::Task) do
+        task = Class.new(Peribot::Processor) do
           def process(msg)
             puts msg.inspect
           end
@@ -56,7 +56,7 @@ describe Peribot::ProcessorChain do
 
     context 'with a task raising an error' do
       it 'outputs a log via the bot' do
-        task = Class.new(Peribot::Middleware::Task) do
+        task = Class.new(Peribot::Processor) do
           def process(*)
             fail 'just testing'
           end
@@ -74,7 +74,7 @@ describe Peribot::ProcessorChain do
           fail 'the end action was reached'
         end
 
-        task = Class.new(Peribot::Middleware::Task) do
+        task = Class.new(Peribot::Processor) do
           def process(*)
             fail Peribot::ProcessorChain::Stop, 'this should not be seen'
           end
