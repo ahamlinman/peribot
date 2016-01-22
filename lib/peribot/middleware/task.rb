@@ -43,7 +43,7 @@ module Peribot
       # the same as discarding a message. Thus, this method may also be called
       # as discard_message.
       def stop_processing
-        fail Peribot::Middleware::Stop
+        fail Peribot::ProcessorChain::Stop
       end
       alias discard_message stop_processing
     end

@@ -1,4 +1,3 @@
-require 'peribot/middleware/stop'
 require 'peribot/middleware/task'
 
 module Peribot

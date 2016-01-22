@@ -68,7 +68,7 @@ describe Peribot::ProcessorChain do
       end
     end
 
-    context 'with a task raising Peribot::Middleware::Stop' do
+    context 'with a task raising the chain stop exception' do
       it 'stops processing without logging' do
         chain = Peribot::ProcessorChain.new(bot) do
           fail 'the end action was reached'
@@ -76,7 +76,7 @@ describe Peribot::ProcessorChain do
 
         task = Class.new(Peribot::Middleware::Task) do
           def process(*)
-            fail Peribot::Middleware::Stop, 'this should not be seen'
+            fail Peribot::ProcessorChain::Stop, 'this should not be seen'
           end
         end
         chain.register task
