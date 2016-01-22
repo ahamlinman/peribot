@@ -61,15 +61,15 @@ module Peribot
     # Set up preprocessing, postprocessing, and sending chains for this bot
     # instance.
     def setup_middleware_chains
-      @preprocessor = Peribot::Middleware::Chain.new(self) do |message|
+      @preprocessor = Peribot::ProcessorChain.new(self) do |message|
         dispatch message.freeze
       end
 
-      @postprocessor = Peribot::Middleware::Chain.new(self) do |message|
+      @postprocessor = Peribot::ProcessorChain.new(self) do |message|
         @sender.accept message
       end
 
-      @sender = Peribot::Middleware::Chain.new(self)
+      @sender = Peribot::ProcessorChain.new(self)
     end
 
     # (private)

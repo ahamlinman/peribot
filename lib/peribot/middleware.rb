@@ -1,4 +1,3 @@
-require 'peribot/middleware/chain'
 require 'peribot/middleware/stop'
 require 'peribot/middleware/task'
 

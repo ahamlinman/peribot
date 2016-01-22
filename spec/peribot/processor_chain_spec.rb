@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe Peribot::Middleware::Chain do
+describe Peribot::ProcessorChain do
   let(:bot) { instance_double(Peribot::Bot) }
-  let(:instance) { Peribot::Middleware::Chain.new bot }
+  let(:instance) { Peribot::ProcessorChain.new bot }
 
   it 'contains an accessible list of tasks' do
     expect(instance).to respond_to(:tasks)
@@ -33,7 +33,7 @@ describe Peribot::Middleware::Chain do
 
     context 'with an end action' do
       it 'executes the end action' do
-        chain = Peribot::Middleware::Chain.new(bot) do |msg|
+        chain = Peribot::ProcessorChain.new(bot) do |msg|
           puts msg.inspect
         end
 
@@ -70,7 +70,7 @@ describe Peribot::Middleware::Chain do
 
     context 'with a task raising Peribot::Middleware::Stop' do
       it 'stops processing without logging' do
-        chain = Peribot::Middleware::Chain.new(bot) do
+        chain = Peribot::ProcessorChain.new(bot) do
           fail 'the end action was reached'
         end
 
