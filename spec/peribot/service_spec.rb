@@ -55,7 +55,7 @@ describe Peribot::Service do
         expect(postprocessor).to receive(:accept).with(reply)
 
         instance = subclass.new bot, postprocessor
-        instance.accept(message).value
+        instance.accept(message).wait
       end
     end
 
@@ -75,7 +75,7 @@ describe Peribot::Service do
           expect(postprocessor).to receive(:accept).with(reply)
 
           instance = subclass.new bot, postprocessor
-          instance.accept(message).value
+          instance.accept(message).wait
         end
 
         it 'does not reply to messages without commands' do
@@ -85,7 +85,7 @@ describe Peribot::Service do
           bad_msg['text'] = 'Do not process this!'
 
           instance = subclass.new bot, postprocessor
-          instance.accept(bad_msg).value
+          instance.accept(bad_msg).wait
         end
       end
 
@@ -96,7 +96,7 @@ describe Peribot::Service do
           expect(postprocessor).to receive(:accept).with(reply)
 
           instance = subclass.new bot, postprocessor
-          instance.accept(message).value
+          instance.accept(message).wait
         end
 
         it 'does not reply to messages without commands' do
@@ -106,7 +106,7 @@ describe Peribot::Service do
           bad_msg['text'] = '#my cmd'
 
           instance = subclass.new bot, postprocessor
-          instance.accept(bad_msg).value
+          instance.accept(bad_msg).wait
         end
       end
     end
@@ -130,14 +130,14 @@ describe Peribot::Service do
         expect(postprocessor).to receive(:accept).once
 
         instance = subclass.new bot, postprocessor
-        instance.accept('group_id' => '1', 'text' => '#testing').value
+        instance.accept('group_id' => '1', 'text' => '#testing').wait
       end
 
       it 'does not reply when only part of a command with argument matches' do
         expect(postprocessor).to receive(:accept).once
 
         instance = subclass.new bot, postprocessor
-        instance.accept('group_id' => '1', 'text' => '#testing now').value
+        instance.accept('group_id' => '1', 'text' => '#testing now').wait
       end
     end
 
@@ -155,7 +155,7 @@ describe Peribot::Service do
         expect(postprocessor).to receive(:accept).with(reply)
 
         instance = subclass.new bot, postprocessor
-        instance.accept(message).value
+        instance.accept(message).wait
       end
 
       it 'does not reply to messages not matching the regex' do
@@ -165,7 +165,7 @@ describe Peribot::Service do
         bad_msg['text'] = 'It will not match!'
 
         instance = subclass.new bot, postprocessor
-        instance.accept(bad_msg).value
+        instance.accept(bad_msg).wait
       end
     end
 
@@ -183,7 +183,7 @@ describe Peribot::Service do
         expect(postprocessor).to_not receive(:accept)
 
         instance = subclass.new bot, postprocessor
-        instance.accept(message).value
+        instance.accept(message).wait
       end
     end
 
@@ -202,7 +202,7 @@ describe Peribot::Service do
         expect(postprocessor).to receive(:accept).with('another' => 'reply')
 
         instance = subclass.new bot, postprocessor
-        instance.accept(message).value
+        instance.accept(message).wait
       end
     end
 
@@ -226,7 +226,7 @@ describe Peribot::Service do
         expect(bot).to receive(:log)
 
         instance = subclass.new bot, postprocessor
-        instance.accept(message).value
+        instance.accept(message).wait
       end
     end
 
@@ -245,7 +245,7 @@ describe Peribot::Service do
         expect(postprocessor).to receive(:accept).once
 
         instance = subclass.new bot, postprocessor
-        instance.accept('group_id' => '1', 'text' => 'message').value
+        instance.accept('group_id' => '1', 'text' => 'message').wait
       end
     end
 
@@ -264,7 +264,7 @@ describe Peribot::Service do
         expect(postprocessor).to receive(:accept).once
 
         instance = subclass.new bot, postprocessor
-        instance.accept('group_id' => '1', 'text' => '#test').value
+        instance.accept('group_id' => '1', 'text' => '#test').wait
       end
     end
 
@@ -285,14 +285,14 @@ describe Peribot::Service do
         expect(postprocessor).to receive(:accept).once
 
         instance = subclass.new bot, postprocessor
-        instance.accept(message).value
+        instance.accept(message).wait
       end
 
       it 'calls the handler with data for the first regex' do
         expect(postprocessor).to receive(:accept).with(reply)
 
         instance = subclass.new bot, postprocessor
-        instance.accept(message).value
+        instance.accept(message).wait
       end
     end
   end

@@ -58,7 +58,7 @@ module Peribot
     # chain.
     #
     # @param message [Hash] The message to process
-    # @return [Concurrent::Promise] The pending promise chain
+    # @return [Concurrent::IVar] An IVar that can be waited on if necessary
     def accept(message)
       promise_chain(message).execute
     end

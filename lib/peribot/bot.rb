@@ -77,7 +77,7 @@ module Peribot
     # Dispatch a message to all services in this bot instance.
     #
     # @param message [Hash] The message to send to services
-    # @return The return values of #accept for each service
+    # @return [Array<Concurrent::IVar>] An array containing an IVar per service
     def dispatch(message)
       @services.map do |service|
         instance = service.new self, @postprocessor

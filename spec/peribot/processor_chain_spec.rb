@@ -37,7 +37,7 @@ describe Peribot::ProcessorChain do
           puts msg.inspect
         end
 
-        expect { chain.accept({}).value }.to output("{}\n").to_stdout
+        expect { chain.accept({}).wait }.to output("{}\n").to_stdout
       end
     end
 
@@ -50,7 +50,7 @@ describe Peribot::ProcessorChain do
         end
         instance.register task
 
-        expect { instance.accept({}).value }.to output("{}\n").to_stdout
+        expect { instance.accept({}).wait }.to output("{}\n").to_stdout
       end
     end
 
@@ -64,7 +64,7 @@ describe Peribot::ProcessorChain do
         instance.register task
 
         expect(bot).to receive(:log)
-        instance.accept({}).value
+        instance.accept({}).wait
       end
     end
 
@@ -82,7 +82,7 @@ describe Peribot::ProcessorChain do
         chain.register task
 
         expect(bot).to_not receive(:log)
-        chain.accept({}).value
+        chain.accept({}).wait
       end
     end
   end

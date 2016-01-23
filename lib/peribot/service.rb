@@ -104,7 +104,7 @@ module Peribot
     # service is completed.
     #
     # @param message [Hash] The message to process
-    # @return [Concurrent::Promise] A promise chain for this message
+    # @return [Concurrent::IVar] An IVar that can be waited on if necessary
     def accept(message)
       promise = Concurrent::Promise.fulfill []
       promise = chain_handlers promise, message

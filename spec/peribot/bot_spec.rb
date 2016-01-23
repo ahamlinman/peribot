@@ -71,7 +71,7 @@ describe Peribot::Bot do
       end
     end
 
-    let(:result) { instance.preprocessor.accept({}).value.each(&:value) }
+    let(:result) { instance.preprocessor.accept({}).value.each(&:wait) }
 
     it 'forwards messages to services after processing' do
       instance.register service
@@ -82,7 +82,7 @@ describe Peribot::Bot do
   describe '#postprocessor' do
     it 'forwards messages to senders after postprocessing' do
       expect(instance.sender).to receive(:accept).with({})
-      instance.postprocessor.accept({}).value
+      instance.postprocessor.accept({}).wait
     end
   end
 
