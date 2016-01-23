@@ -22,9 +22,13 @@ module Peribot
 
       setup_middleware_chains
 
+      @cache = Concurrent::Map.new do |map, key|
+        map[key] = Concurrent::Atom.new({})
+      end
+
       @services = []
     end
-    attr_reader :preprocessor, :postprocessor, :sender, :services
+    attr_reader :preprocessor, :postprocessor, :sender, :services, :cache
 
     # Send a message to this bot instance and process it through all middleware
     # chains and services. This method is really just a convenient way to send

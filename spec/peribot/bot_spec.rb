@@ -61,6 +61,13 @@ describe Peribot::Bot do
     end
   end
 
+  describe '#cache' do
+    it 'creates temporary Concurrent::Atom stores' do
+      instance.cache['test'].swap { |o| o.merge('works' => true) }
+      expect(instance.cache['test'].value).to eq('works' => true)
+    end
+  end
+
   describe '#preprocessor' do
     let(:service) do
       Class.new(Peribot::Service) do
