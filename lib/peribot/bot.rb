@@ -37,7 +37,7 @@ module Peribot
     #
     # @param message [Hash] The message to process
     def accept(message)
-      @preprocessor.accept message
+      preprocessor.accept message
     end
 
     # Register a service with this Peribot instance. It will be instantiated
@@ -47,7 +47,7 @@ module Peribot
     #
     # @param service [Class] A service that should receive messages
     def register(service)
-      @services << service unless @services.include? service
+      services << service unless services.include? service
     end
 
     # A simple logging function for use by Peribot components. Outputs the
@@ -70,7 +70,7 @@ module Peribot
       end
 
       @postprocessor = Peribot::ProcessorChain.new(self) do |message|
-        @sender.accept message
+        sender.accept message
       end
 
       @sender = Peribot::ProcessorChain.new(self)
@@ -83,8 +83,8 @@ module Peribot
     # @param message [Hash] The message to send to services
     # @return [Array<Concurrent::IVar>] An array containing an IVar per service
     def dispatch(message)
-      @services.map do |service|
-        instance = service.new self, @postprocessor
+      services.map do |service|
+        instance = service.new self, postprocessor
         instance.accept message
       end
     end
