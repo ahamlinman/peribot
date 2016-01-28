@@ -20,6 +20,14 @@ describe Peribot::Bot do
     end
   end
 
+  # This ensures that any processor chains created by the bot are actually
+  # initialized with the bot itself (which is pretty much the whole idea of
+  # initializing those chains with a bot).
+  before(:each) do
+    allow(Peribot::ProcessorChain).to receive(:new)
+      .with(instance_of(Peribot::Bot)).and_call_original
+  end
+
   it 'has a preprocessor' do
     expect(instance.preprocessor).to respond_to(:accept)
   end
