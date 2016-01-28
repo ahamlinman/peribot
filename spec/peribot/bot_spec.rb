@@ -11,14 +11,8 @@ describe Peribot::Bot do
     end
   end
 
-  let(:service) do
-    Class.new(Peribot::Service) do
-      def handle(*)
-        { 'group_id' => '0', 'text' => 'Reply' }
-      end
-      on_message :handle
-    end
-  end
+  let(:service) { Class.new(Peribot::Service) }
+  let(:service_instance) { instance_double(Peribot::Service) }
 
   # This ensures that any processor chains created by the bot are actually
   # initialized with the bot itself (which is pretty much the whole idea of
@@ -38,6 +32,17 @@ describe Peribot::Bot do
 
   it 'has a sender' do
     expect(instance.sender).to respond_to(:accept)
+  end
+
+  it 'initializes services with itself and the postprocessor' do
+    instance.register service
+
+    expect(service).to receive(:new)
+      .with(instance_of(Peribot::Bot), instance_of(Peribot::ProcessorChain))
+      .and_return(service_instance)
+    allow(service_instance).to receive(:accept)
+
+    instance.accept({}).wait
   end
 
   describe '#accept' do
