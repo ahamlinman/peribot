@@ -73,6 +73,7 @@ describe Peribot::Bot do
       Class.new(Peribot::Service) do
         def handle(message)
           puts message.inspect
+          puts message.frozen?
         end
         on_message :handle
       end
@@ -80,9 +81,9 @@ describe Peribot::Bot do
 
     let(:result) { instance.preprocessor.accept({}).value.each(&:wait) }
 
-    it 'forwards messages to services after processing' do
+    it 'forwards frozen messages to services after processing' do
       instance.register service
-      expect { result }.to output("{}\n").to_stdout
+      expect { result }.to output("{}\ntrue\n").to_stdout
     end
   end
 
@@ -90,6 +91,21 @@ describe Peribot::Bot do
     it 'forwards messages to senders after postprocessing' do
       expect(instance.sender).to receive(:accept).with({})
       instance.postprocessor.accept({}).wait
+    end
+  end
+
+  describe '#sender' do
+    let(:test_sender) do
+      Class.new(Peribot::Processor) do
+        def process(message)
+          puts message.inspect
+        end
+      end
+    end
+
+    it 'can register senders and give them messages' do
+      instance.sender.register test_sender
+      expect { instance.sender.accept({}).wait }.to output("{}\n").to_stdout
     end
   end
 
