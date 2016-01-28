@@ -31,7 +31,9 @@ module Peribot
     # being stopped after a message has been sent. Sender chains are the most
     # obvious (and intended) use case, though others might be appropriate as
     # well.
-    class Stop < RuntimeError; end
+    Stop = Class.new RuntimeError
+
+    attr_reader :tasks
 
     # Create a new processor chain.
     #
@@ -39,10 +41,9 @@ module Peribot
     # @yield [message] A message, processed by all tasks in the chain
     def initialize(bot, &end_action)
       @bot = bot
+      @end_action = end_action
       @tasks = []
-      @end_action = end_action if block_given?
     end
-    attr_reader :tasks
 
     # Register a task with this processor chain. The given task will be
     # instantiated and used to process the message. Tasks will only be
@@ -51,7 +52,7 @@ module Peribot
     #
     # @param task [Class] A class with a #process method taking a message
     def register(task)
-      @tasks << task unless @tasks.include? task
+      tasks << task unless tasks.include? task
     end
 
     # Begin processing a message using the tasks defined for this processor
@@ -65,6 +66,8 @@ module Peribot
 
     private
 
+    attr_reader :bot, :end_action
+
     # (private)
     #
     # Construct a promise chain for the given message. This is essentially a
@@ -76,14 +79,14 @@ module Peribot
     def promise_chain(message)
       promise = Concurrent::Promise.fulfill message
       promise = chain_tasks promise
-      promise = promise.then(&@end_action) if @end_action
+      promise = promise.then(&end_action) if end_action
 
       promise.rescue do |e|
         next if e.instance_of? Stop
 
-        @bot.log "Error in processing chain:\n"\
-          "  => message = #{message.inspect}\n"\
-        "  => exception = #{e.inspect}"
+        bot.log "Error in processing chain:\n"\
+          "  => message = #{message}\n"\
+          "  => exception = #{e.inspect}"
       end
     end
 
@@ -94,8 +97,8 @@ module Peribot
     # @param promise [Concurrent::Promise] The initial promise
     # @return [Concurrent::Promise] The promise with additional children
     def chain_tasks(promise)
-      @tasks.reduce(promise) do |current_chain, task|
-        current_chain.then { |msg| task.new(@bot).process msg }
+      tasks.reduce(promise) do |current_chain, task|
+        current_chain.then { |msg| task.new(bot).process msg }
       end
     end
   end
