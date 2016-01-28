@@ -28,4 +28,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_development_dependency 'rubocop', '~> 0.36.0'
   spec.add_development_dependency 'simplecov', '~> 0.11.1'
+
+  if RUBY_VERSION >= '2.1.0'
+    spec.add_development_dependency 'mutant-rspec', '~> 0.8.8'
+  end
 end
