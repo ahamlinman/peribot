@@ -7,8 +7,8 @@ module Peribot
   # storage, etc. This is the single most important part of a Peribot instance,
   # as it is what connects all other components together.
   class Bot
-    include Peribot::Bot::Configuration
-    include Peribot::Bot::Stores
+    include Configuration
+    include Stores
 
     # Create a new Peribot instance and set up its basic configuration options.
     #
@@ -65,15 +65,15 @@ module Peribot
     # Set up preprocessing, postprocessing, and sending chains for this bot
     # instance.
     def setup_middleware_chains
-      @preprocessor = Peribot::ProcessorChain.new(self) do |message|
+      @preprocessor = ProcessorChain.new(self) do |message|
         dispatch message.freeze
       end
 
-      @postprocessor = Peribot::ProcessorChain.new(self) do |message|
+      @postprocessor = ProcessorChain.new(self) do |message|
         sender.accept message
       end
 
-      @sender = Peribot::ProcessorChain.new(self)
+      @sender = ProcessorChain.new(self)
     end
 
     # (private)
