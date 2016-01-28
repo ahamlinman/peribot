@@ -63,7 +63,14 @@ describe Peribot::ProcessorChain do
         end
         instance.register task
 
-        expect(bot).to receive(:log)
+        msg = <<-END
+        Error in processing chain:
+          => message = {}
+          => exception = #<RuntimeError: just testing>
+        END
+        msg.gsub!(/^\s{#{msg.match('\s+').to_s.length}}/, '').strip!
+
+        expect(bot).to receive(:log).with(msg)
         instance.accept({}).wait
       end
     end
