@@ -122,19 +122,27 @@ describe Peribot::Bot do
     end
   end
 
+  shared_context 'bad initialization' do
+    it 'raises an error when instantiated' do
+      expect { instance }.to raise_error(message)
+    end
+  end
+
   context 'without a config_directory parameter' do
     let(:instance) { Peribot::Bot.new(store_directory: '') }
-
-    it 'raises an error when instantiated' do
-      expect { instance }.to raise_error('No config directory defined')
-    end
+    let(:message) { 'No config directory defined' }
+    include_context 'bad initialization'
   end
 
   context 'without a store_directory parameter' do
     let(:instance) { Peribot::Bot.new(config_directory: '') }
+    let(:message) { 'No store directory defined' }
+    include_context 'bad initialization'
+  end
 
-    it 'raises an error when instantiated' do
-      expect { instance }.to raise_error('No store directory defined')
-    end
+  context 'with no config or store directories defined' do
+    let(:instance) { Peribot::Bot.new }
+    let(:message) { 'No config directory defined' }
+    include_context 'bad initialization'
   end
 end
