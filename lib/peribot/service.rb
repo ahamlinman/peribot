@@ -112,7 +112,7 @@ module Peribot
 
       promise = Concurrent::Promise.fulfill []
       promise = chain_handlers promise, message
-      promise.then { |msgs| end_action msgs, message['group_id'] }
+      promise.then { |msgs| end_action msgs, message.fetch('group_id') }
     end
 
     private
@@ -150,10 +150,12 @@ module Peribot
     # @see chain_handlers
     def chain_command_handlers(promise, message)
       self.class.command_handlers.reduce(promise) do |prom, (cmd, handler)|
-        safe_cmd = Regexp.quote(cmd)
-        next prom unless message['text'] =~ /\A##{safe_cmd}(?: |\z)/
+        text = message.fetch 'text'
 
-        args = message['text'].split[1..-1].join(' ')
+        safe_cmd = Regexp.quote(cmd)
+        next prom unless text =~ /\A##{safe_cmd}(?: |\z)/
+
+        args = text.split[1..-1].join(' ')
         args = nil if args.length == 0
 
         prom.then(&handler_proc(handler, cmd, args, message))
@@ -183,9 +185,11 @@ module Peribot
     # @param message [Hash] The message being processed
     # @return [Hash] A map from handler functions to match data
     def listen_matches(message)
+      text = message.fetch 'text'
+
       handlers = self.class.listen_handlers.map do |regex, handler|
-        next unless message['text'] =~ regex
-        [handler, regex.match(message['text'])]
+        next unless text =~ regex
+        [handler, regex.match(text)]
       end
       Hash[handlers.compact.uniq(&:first)]
     end
