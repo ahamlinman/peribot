@@ -45,15 +45,27 @@ describe Peribot::Service do
     context 'with a message handler' do
       let(:subclass) do
         Class.new(base) do
-          def test_handler(*)
-            'Success!'
+          def test_handler(message)
+            {
+              'group_id' => message['group_id'],
+              'text' => 'Success!',
+              'original' => message
+            }
           end
           on_message :test_handler
         end
       end
 
       it 'replies to any message' do
-        expect(postprocessor).to receive(:accept).with(reply)
+        expect(postprocessor).to receive(:accept).with(hash_including(reply))
+
+        instance = subclass.new bot, postprocessor
+        instance.accept(message).wait
+      end
+
+      it 'passes the original message as an argument' do
+        expect(postprocessor).to receive(:accept)
+          .with(hash_including('original' => message))
 
         instance = subclass.new bot, postprocessor
         instance.accept(message).wait
