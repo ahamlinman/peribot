@@ -246,7 +246,7 @@ module Peribot
     # @return [Array<Hash>] A normalized array of replies
     def convert_strings_to_replies(replies, gid)
       replies.map do |reply|
-        next reply unless reply.is_a? String
+        next reply unless reply.instance_of? String
         { 'group_id' => gid, 'text' => reply }
       end
     end
