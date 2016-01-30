@@ -58,7 +58,7 @@ module Peribot
       #
       # @param handler [Symbol] The name of the method to be called
       def on_message(handler)
-        @message_handlers << handler unless @message_handlers.include? handler
+        message_handlers << handler unless message_handlers.include? handler
       end
 
       # Register a method that will be called with a command, arguments, and
@@ -71,7 +71,7 @@ module Peribot
       # @param command [Symbol] The command to look for
       # @param handler [Symbol] The name of the method to be called
       def on_command(command, handler)
-        @command_handlers[command.to_s] = handler
+        command_handlers[command.to_s] = handler
       end
 
       # Register a method that will be called with match data and a message
@@ -82,7 +82,7 @@ module Peribot
       # @param regex [Regexp] The regex to use when matching messages
       # @param handler [Symbol] The name of the method to be called
       def on_hear(regex, handler)
-        @listen_handlers[regex] = handler
+        listen_handlers[regex] = handler
       end
       alias on_listen on_hear
     end
@@ -112,12 +112,12 @@ module Peribot
 
       promise = Concurrent::Promise.fulfill []
       promise = chain_handlers promise, message
-      promise = promise.then { |msgs| end_action msgs, message['group_id'] }
-
-      promise.execute
+      promise.then { |msgs| end_action msgs, message['group_id'] }
     end
 
     private
+
+    attr_accessor :bot, :acceptor
 
     # (private)
     #
@@ -229,7 +229,7 @@ module Peribot
     def end_action(replies, gid)
       msgs = replies.flatten.reject(&:nil?)
       msgs = convert_strings_to_replies msgs, gid
-      msgs.each { |msg| @acceptor.accept msg }
+      msgs.each { |msg| acceptor.accept msg }
     end
 
     # (private)
@@ -254,10 +254,10 @@ module Peribot
     # @param error [Exception] The error that was raised
     # @param message [Hash] The message being processed
     def failure_action(error, message)
-      @bot.log "#{self.class}: Error while processing message\n"\
-               "  => message = #{message.inspect}\n"\
-               "  => exception = #{error.inspect}\n"\
-               "  => backtrace:\n#{format_backtrace error.backtrace}"
+      bot.log "#{self.class}: Error while processing message\n"\
+              "  => message = #{message.inspect}\n"\
+              "  => exception = #{error.inspect}\n"\
+              "  => backtrace:\n#{format_backtrace error.backtrace}"
     end
 
     # (private)

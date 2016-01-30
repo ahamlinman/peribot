@@ -170,6 +170,24 @@ describe Peribot::Service do
       end
     end
 
+    context 'with a handler using the bot instance' do
+      let(:subclass) do
+        Class.new(base) do
+          def handler(*)
+            bot.log 'test'
+          end
+          on_message :handler
+        end
+      end
+
+      it 'allows bot use through an accessor' do
+        expect(bot).to receive(:log).with('test')
+
+        instance = subclass.new bot, postprocessor
+        instance.accept(message).wait
+      end
+    end
+
     context 'with a handler returning nil' do
       let(:subclass) do
         Class.new(base) do
