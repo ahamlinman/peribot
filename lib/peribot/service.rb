@@ -191,7 +191,7 @@ module Peribot
         next unless text =~ regex
         [handler, regex.match(text)]
       end
-      Hash[handlers.compact.uniq(&:first)]
+      handlers.compact.uniq(&:first)
     end
 
     # (private)

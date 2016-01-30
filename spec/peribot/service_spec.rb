@@ -358,6 +358,7 @@ describe Peribot::Service do
           def listen(match, _)
             match[1]
           end
+          on_hear(/bad handler/, :listen)
           on_hear(/(simple) test/, :listen)
           on_hear(/simple (test)/, :listen)
         end
@@ -372,7 +373,7 @@ describe Peribot::Service do
         instance.accept(message).wait
       end
 
-      it 'calls the handler with data for the first regex' do
+      it 'calls the handler with data for the first matching regex' do
         expect(postprocessor).to receive(:accept).with(reply)
 
         instance = subclass.new bot, postprocessor
