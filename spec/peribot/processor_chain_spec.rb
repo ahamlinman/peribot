@@ -77,6 +77,9 @@ describe Peribot::ProcessorChain do
     end
 
     context 'with a task raising an error' do
+      let(:error) { RuntimeError.new 'just testing' }
+      let(:message) { { 'test' => true } }
+
       it 'outputs a log via the bot' do
         task = Class.new(Peribot::Processor) do
           def process(*)
@@ -85,15 +88,15 @@ describe Peribot::ProcessorChain do
         end
         instance.register task
 
-        msg = <<-END
+        log_msg = <<-END
         Error in processing chain:
-          => message = {}
-          => exception = #<RuntimeError: just testing>
+          => message = #{message}
+          => exception = #{error.inspect}
         END
-        msg.gsub!(/^\s{#{msg.match('\s+').to_s.length}}/, '').strip!
+        log_msg.gsub!(/^\s{#{log_msg.match('\s+').to_s.length}}/, '').strip!
 
-        expect(bot).to receive(:log).with(msg)
-        instance.accept({}).wait
+        expect(bot).to receive(:log).with(log_msg)
+        instance.accept(message).wait
       end
     end
 
