@@ -216,7 +216,7 @@ module Peribot
     def handler_proc(*args, message)
       proc do |msgs|
         begin
-          msgs << send(*args, message)
+          msgs << __send__(*args, message)
         rescue => error
           failure_action error, message
           msgs
