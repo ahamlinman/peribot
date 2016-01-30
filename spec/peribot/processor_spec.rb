@@ -7,12 +7,12 @@ describe Peribot::Processor do
   it 'provides access to the bot it was initialized with' do
     task = Class.new(Peribot::Processor) do
       def process(*)
-        puts bot.class
+        bot.log 'test'
       end
     end
 
-    expect { task.new(Object.new).process({}) }
-      .to output("Object\n").to_stdout
+    expect(bot).to receive(:log).with('test')
+    task.new(bot).process({})
   end
 
   describe '#process' do
