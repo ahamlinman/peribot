@@ -317,6 +317,7 @@ describe Peribot::Service do
 
     shared_context 'invalid message' do
       let(:subclass) { Class.new(base) }
+      let(:error_message) { 'invalid message (must have text and group_id)' }
 
       it 'fails to process the message' do
         instance = subclass.new bot, postprocessor
@@ -326,19 +327,26 @@ describe Peribot::Service do
 
     context 'with an empty message' do
       let(:message) { {} }
-      let(:error_message) { 'invalid message (must have text and group_id)' }
       include_context 'invalid message'
     end
 
     context 'with a message missing a group_id' do
       let(:message) { { 'text' => 'This is a test message.' } }
-      let(:error_message) { 'invalid message (must have text and group_id)' }
       include_context 'invalid message'
     end
 
     context 'with a message missing text' do
       let(:message) { { 'group_id' => '1234' } }
-      let(:error_message) { 'invalid message (must have text and group_id)' }
+      include_context 'invalid message'
+    end
+
+    context 'with a message with a nil group_id' do
+      let(:message) { { 'group_id' => nil, 'text' => 'Test' } }
+      include_context 'invalid message'
+    end
+
+    context 'with a message with  nil text' do
+      let(:message) { { 'group_id' => '1234', 'text' => nil } }
       include_context 'invalid message'
     end
   end
