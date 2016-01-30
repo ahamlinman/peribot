@@ -63,23 +63,28 @@ describe Peribot::Service do
     context 'with a command handler' do
       let(:subclass) do
         Class.new(base) do
-          def test_handler(_command, _arguments, message)
-            { 'group_id' => message['group_id'], 'text' => 'Success!' }
+          def test_handler(command, arguments, message)
+            {
+              'group_id' => message['group_id'],
+              'text' => 'Success!',
+              'command' => command,
+              'arguments' => arguments
+            }
           end
           on_command :test, :test_handler
           on_command :'my.cmd', :test_handler
         end
       end
 
-      context 'with commands not containing special chars' do
-        it 'replies to messages with commands' do
-          expect(postprocessor).to receive(:accept).with(reply)
+      context 'with a regular command and an argument' do
+        it 'replies to messages with the command' do
+          expect(postprocessor).to receive(:accept).with(hash_including(reply))
 
           instance = subclass.new bot, postprocessor
           instance.accept(message).wait
         end
 
-        it 'does not reply to messages without commands' do
+        it 'does not reply to messages without the command' do
           expect(postprocessor).to_not receive(:accept)
 
           bad_msg = message.dup
@@ -88,13 +93,21 @@ describe Peribot::Service do
           instance = subclass.new bot, postprocessor
           instance.accept(bad_msg).wait
         end
+
+        it 'passes the argument to the handler' do
+          expect(postprocessor).to receive(:accept)
+            .with(hash_including('arguments' => 'this'))
+
+          instance = subclass.new bot, postprocessor
+          instance.accept(message).wait
+        end
       end
 
-      context 'with commands containing special chars' do
+      context 'with commands containing special chars and no argument' do
         let(:message) { { 'group_id' => '1234', 'text' => '#my.cmd' }.freeze }
 
         it 'replies to messages with commands' do
-          expect(postprocessor).to receive(:accept).with(reply)
+          expect(postprocessor).to receive(:accept).with(hash_including(reply))
 
           instance = subclass.new bot, postprocessor
           instance.accept(message).wait
@@ -108,6 +121,26 @@ describe Peribot::Service do
 
           instance = subclass.new bot, postprocessor
           instance.accept(bad_msg).wait
+        end
+
+        it 'passes nil as the argument' do
+          expect(postprocessor).to receive(:accept)
+            .with(hash_including('arguments' => nil))
+
+          instance = subclass.new bot, postprocessor
+          instance.accept(message).wait
+        end
+      end
+
+      context 'with an argument containing multiple words' do
+        let(:message) { { 'group_id' => '1', 'text' => '#test me now' }.freeze }
+
+        it 'passes the full argument to the handler' do
+          expect(postprocessor).to receive(:accept)
+            .with(hash_including('arguments' => 'me now'))
+
+          instance = subclass.new bot, postprocessor
+          instance.accept(message).wait
         end
       end
     end

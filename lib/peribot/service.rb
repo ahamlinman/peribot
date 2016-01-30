@@ -156,7 +156,7 @@ module Peribot
         next prom unless text =~ /\A##{safe_cmd}(?: |\z)/
 
         args = text.split[1..-1].join(' ')
-        args = nil if args.length == 0
+        args = nil if args.empty?
 
         prom.then(&handler_proc(handler, cmd, args, message))
       end
