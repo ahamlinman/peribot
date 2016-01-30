@@ -54,6 +54,20 @@ describe Peribot::ProcessorChain do
       end
     end
 
+    context 'with a task using the bot instance' do
+      it 'provides proper access to the bot' do
+        task = Class.new(Peribot::Processor) do
+          def process(*)
+            bot.log 'test'
+          end
+        end
+        instance.register task
+
+        expect(bot).to receive(:log).with('test')
+        instance.accept({}).wait
+      end
+    end
+
     context 'with a task raising an error' do
       it 'outputs a log via the bot' do
         task = Class.new(Peribot::Processor) do
