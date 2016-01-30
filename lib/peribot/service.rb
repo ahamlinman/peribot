@@ -106,6 +106,10 @@ module Peribot
     # @param message [Hash] The message to process
     # @return [Concurrent::IVar] An IVar that can be waited on if necessary
     def accept(message)
+      unless message['text'] && message['group_id']
+        fail 'invalid message (must have text and group_id)'
+      end
+
       promise = Concurrent::Promise.fulfill []
       promise = chain_handlers promise, message
       promise = promise.then { |msgs| end_action msgs, message['group_id'] }

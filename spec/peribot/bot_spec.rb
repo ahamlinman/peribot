@@ -92,11 +92,12 @@ describe Peribot::Bot do
       end
     end
 
-    let(:result) { instance.preprocessor.accept({}).value.each(&:wait) }
+    let(:msg) { { 'group_id' => '1', 'text' => 'test' } }
+    let(:result) { instance.preprocessor.accept(msg).value.each(&:wait) }
 
     it 'forwards frozen messages to services after processing' do
       instance.register service
-      expect { result }.to output("{}\ntrue\n").to_stdout
+      expect { result }.to output("#{msg}\ntrue\n").to_stdout
     end
   end
 

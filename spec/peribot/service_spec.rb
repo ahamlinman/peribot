@@ -38,7 +38,8 @@ describe Peribot::Service do
     it 'returns a promise' do
       subclass = Class.new(base)
       instance = subclass.new bot, postprocessor
-      expect(instance.accept({})).to be_instance_of(Concurrent::Promise)
+      msg = { 'group_id' => '1', 'text' => 'test' }
+      expect(instance.accept(msg)).to be_instance_of(Concurrent::Promise)
     end
 
     context 'with a message handler' do
@@ -294,6 +295,33 @@ describe Peribot::Service do
         instance = subclass.new bot, postprocessor
         instance.accept(message).wait
       end
+    end
+
+    shared_context 'invalid message' do
+      let(:subclass) { Class.new(base) }
+
+      it 'fails to process the message' do
+        instance = subclass.new bot, postprocessor
+        expect { instance.accept(message).wait }.to raise_error(error_message)
+      end
+    end
+
+    context 'with an empty message' do
+      let(:message) { {} }
+      let(:error_message) { 'invalid message (must have text and group_id)' }
+      include_context 'invalid message'
+    end
+
+    context 'with a message missing a group_id' do
+      let(:message) { { 'text' => 'This is a test message.' } }
+      let(:error_message) { 'invalid message (must have text and group_id)' }
+      include_context 'invalid message'
+    end
+
+    context 'with a message missing text' do
+      let(:message) { { 'group_id' => '1234' } }
+      let(:error_message) { 'invalid message (must have text and group_id)' }
+      include_context 'invalid message'
     end
   end
 end
