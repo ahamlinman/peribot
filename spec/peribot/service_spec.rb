@@ -251,6 +251,26 @@ describe Peribot::Service do
       end
     end
 
+    context 'with a private handler' do
+      let(:subclass) do
+        Class.new(base) do
+          private
+
+          def handler(*)
+            'Success!'
+          end
+          on_message :handler
+        end
+      end
+
+      it 'calls the handler' do
+        expect(postprocessor).to receive(:accept).with(reply)
+
+        instance = subclass.new bot, postprocessor
+        instance.accept(message).wait
+      end
+    end
+
     context 'with a handler returning multiple messages' do
       let(:subclass) do
         Class.new(base) do
