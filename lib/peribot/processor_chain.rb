@@ -87,12 +87,11 @@ module Peribot
       promise = promise.then(&end_action) if end_action
 
       promise.rescue do |e|
-        # (29 January 2016)
-        # THIS MUST BE 'next' AND NOT 'break'! Using 'break' leads to an
-        # infinite hang on JRuby for reasons that I honestly do not understand.
-        # My guess is that it has something to do with how concurrent-ruby
-        # implements their stuff in Java. Perhaps this will change in the
-        # future?
+        # (29 January 2016) THIS MUST BE 'next' AND NOT 'break'! Using 'break'
+        # leads to an infinite hang on JRuby for reasons that I honestly don't
+        # fully understand (I'm actually a bit surprised that it doesn't cause
+        # a similar issue on MRI). At least for now, I have written a test to
+        # make sure that this does not get changed.
         next if e.instance_of? Stop
 
         bot.log "Error in processing chain:\n"\

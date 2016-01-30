@@ -113,6 +113,29 @@ describe Peribot::ProcessorChain do
         expect(bot).to_not receive(:log)
         chain.accept({}).wait
       end
+
+      it 'does not `break` from the rescue block' do
+        promise = Concurrent::Promise.fulfill({})
+        expect(Concurrent::Promise).to receive(:fulfill).and_return(promise)
+
+        original_rescue = promise.method(:rescue)
+        expect(promise).to receive(:rescue) do |&block|
+          block.call(Peribot::ProcessorChain::Stop.new)
+
+          # If the rescue block uses `break` instead of `next` when attempting
+          # to skip anything further in the block, then the entire promise
+          # chain will suddenly become nil (since we will not get past the part
+          # above and cannot run the part below where we return the value from
+          # the method's original implementation). Acting on nil as though it
+          # is a promise chain will cause this test to fail, which allows us to
+          # ensure that we are not using `break` inside of that block. (Using
+          # `break` instead of `next` leads to infinite hangs on JRuby.)
+
+          original_rescue.call(&block)
+        end
+
+        instance.accept({}).wait
+      end
     end
   end
 end
