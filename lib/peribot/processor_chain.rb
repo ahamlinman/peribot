@@ -61,7 +61,12 @@ module Peribot
     # @param message [Hash] The message to process
     # @return [Concurrent::IVar] An IVar that can be waited on if necessary
     def accept(message)
-      promise_chain(message).execute
+      # Note that #execute does not actually need to be called on the promise
+      # returned by #promise_chain. Because the promise begins in the fulfilled
+      # state, any children immediately get posted to the executor. This is not
+      # made clear in the concurrent-ruby documentation, though I do not expect
+      # it to change given how promises are intended to work in general.
+      promise_chain(message)
     end
 
     private
@@ -82,6 +87,12 @@ module Peribot
       promise = promise.then(&end_action) if end_action
 
       promise.rescue do |e|
+        # (29 January 2016)
+        # THIS MUST BE 'next' AND NOT 'break'! Using 'break' leads to an
+        # infinite hang on JRuby for reasons that I honestly do not understand.
+        # My guess is that it has something to do with how concurrent-ruby
+        # implements their stuff in Java. Perhaps this will change in the
+        # future?
         next if e.instance_of? Stop
 
         bot.log "Error in processing chain:\n"\

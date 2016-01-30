@@ -34,6 +34,14 @@ describe Peribot::ProcessorChain do
     context 'with an end action' do
       it 'executes the end action' do
         chain = Peribot::ProcessorChain.new(bot) do |msg|
+          # During mutation testing, an example was created where the end
+          # action would be chained to the other tasks, but the variable would
+          # still point to the end action's parent. The end action would
+          # execute, but it would not be waited on. Sleeping here is a cheap
+          # way to make sure that everything gets waited on properly - the test
+          # is very likely to fail if the chaining isn't done right. It only
+          # adds nominal overhead to the test.
+          sleep 0.1
           puts msg.inspect
         end
 
