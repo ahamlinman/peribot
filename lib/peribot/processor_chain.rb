@@ -17,6 +17,8 @@ module Peribot
   # sending messages. New chains are created by creating new instances of this
   # class. End actions are provided via a block passed to {#initialize}.
   class ProcessorChain
+    include ErrorHelpers
+
     # An exception class that middleware tasks can use to stop message
     # processing without logging an error. It would be reasonable to argue that
     # an exception should not be used for this purpose, as it is not
@@ -94,9 +96,7 @@ module Peribot
         # make sure that this does not get changed.
         next if e.instance_of? Stop
 
-        bot.log "Error in processing chain:\n"\
-          "  => message = #{message}\n"\
-          "  => exception = #{e.inspect}"
+        log_failure error: e, message: message
       end
     end
 

@@ -77,7 +77,6 @@ describe Peribot::ProcessorChain do
     end
 
     context 'with a task raising an error' do
-      let(:error) { RuntimeError.new 'just testing' }
       let(:message) { { 'test' => true } }
 
       it 'outputs a log via the bot' do
@@ -88,14 +87,16 @@ describe Peribot::ProcessorChain do
         end
         instance.register task
 
+        # Only part of the log will be matched. We just want to ensure that the
+        # right message gets output and that the exception isn't forgotten.
         log_msg = <<-END
-        Error in processing chain:
           => message = #{message}
-          => exception = #{error.inspect}
+          => exception =
         END
-        log_msg.gsub!(/^\s{#{log_msg.match('\s+').to_s.length}}/, '').strip!
+        log_msg.gsub!(/^\s{#{log_msg.match('\s+').to_s.length - 2}}/, '')
+        log_msg.strip!
 
-        expect(bot).to receive(:log).with(log_msg)
+        expect(bot).to receive(:log).with(/#{Regexp.quote(log_msg)}/)
         instance.accept(message).wait
       end
     end
