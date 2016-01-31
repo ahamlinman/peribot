@@ -14,12 +14,14 @@ module Peribot
       # @param key [String] The key for the store
       # @return [Concurrent::Atom] A Concurrent::Atom representing the store
       def store(key)
-        @store_map[key.to_s]
+        store_map[key.to_s]
       rescue NoMethodError
         raise 'No store directory defined'
       end
 
       private
+
+      attr_reader :store_map
 
       # (private)
       #
