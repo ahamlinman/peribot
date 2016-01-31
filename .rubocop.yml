@@ -3,5 +3,6 @@ Style/Documentation:
     - 'lib/peribot/version.rb'
 
 AllCops:
+  TargetRubyVersion: 2.1
   Exclude:
     - 'bin/**/*'
