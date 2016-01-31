@@ -40,6 +40,8 @@ module Peribot
   #   # (may also be called as on_listen)
   #   on_hear /a (.*) handler/i, :my_listen_handler
   class Service
+    include ErrorHelpers
+
     class << self
       # Ensure that handler lists get set in subclasses, and allow them to be
       # accessible.
@@ -218,7 +220,7 @@ module Peribot
         begin
           msgs << __send__(*args, message)
         rescue => error
-          failure_action error, message
+          log_failure error: error, message: message
           msgs
         end
       end
@@ -249,30 +251,6 @@ module Peribot
         next reply unless reply.instance_of? String
         { 'group_id' => gid, 'text' => reply }
       end
-    end
-
-    # (private)
-    #
-    # Handle errors in message processing by printing the error to stderr.
-    #
-    # @param error [Exception] The error that was raised
-    # @param message [Hash] The message being processed
-    def failure_action(error, message)
-      bot.log "#{self.class}: Error while processing message\n"\
-              "  => message = #{message.inspect}\n"\
-              "  => exception = #{error.inspect}\n"\
-              "  => backtrace:\n#{format_backtrace error.backtrace}"
-    end
-
-    # (private)
-    #
-    # Format an exception backtrace for printing to the log.
-    #
-    # @param backtrace [Array<String>] Lines of the backtrace
-    # @return [String] An indented backtrace with newlines
-    def format_backtrace(backtrace)
-      indent = 5
-      backtrace.map { |line| line.prepend(' ' * indent) }.join("\n")
     end
   end
 end

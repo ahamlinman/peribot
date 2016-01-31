@@ -307,7 +307,11 @@ describe Peribot::Service do
 
       it 'sends one message and logs an error' do
         expect(postprocessor).to receive(:accept).with(reply)
-        expect(bot).to receive(:log)
+        expect(bot).to receive(:log) do |msg|
+          fail unless msg =~ /exception =/ # make sure exception is logged
+          fail unless msg =~ /message =/   # make sure message is logged
+          fail unless msg =~ /#test this/  # make sure message text is there
+        end
 
         instance = subclass.new bot, postprocessor
         instance.accept(message).wait
