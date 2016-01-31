@@ -1,4 +1,5 @@
 require 'peribot/bot'
+require 'peribot/error_helpers'
 require 'peribot/processor'
 require 'peribot/processor_chain'
 require 'peribot/service'
