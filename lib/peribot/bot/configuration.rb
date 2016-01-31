@@ -15,12 +15,14 @@ module Peribot
       #
       # @return [Hash] The full configuration for the bot instance
       def config
-        @config_builder.value || (fail @config_builder.reason)
+        config_builder.value || (fail config_builder.reason)
       rescue NoMethodError
         raise 'No config directory defined'
       end
 
       private
+
+      attr_reader :config_builder
 
       # (private)
       #
