@@ -233,7 +233,7 @@ module Peribot
     # @param replies [Array] Replies from handlers in this service
     # @param gid [String] The default group to reply to (if not in a message)
     def end_action(replies, gid)
-      msgs = replies.flatten.reject(&:nil?)
+      msgs = replies.flatten.compact
       msgs = convert_strings_to_replies msgs, gid
       msgs.each { |msg| acceptor.accept msg }
     end
