@@ -15,7 +15,7 @@ module Peribot
       #
       # @return [Hash] The full configuration for the bot instance
       def config
-        config_builder.value || (fail config_builder.reason)
+        config_builder.value || (raise config_builder.reason)
       rescue NoMethodError
         raise 'No config directory defined'
       end
@@ -32,7 +32,7 @@ module Peribot
       #
       # @param dir [String] The directory to load from
       def setup_config_directory(dir)
-        fail 'No config directory defined' unless dir
+        raise 'No config directory defined' unless dir
 
         @config_builder = Concurrent::Delay.new do
           build_config(dir).freeze

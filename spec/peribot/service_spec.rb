@@ -294,7 +294,7 @@ describe Peribot::Service do
       let(:subclass) do
         Class.new(base) do
           def failing_handler(*)
-            fail 'This is just part of the test.'
+            raise 'This is just part of the test.'
           end
           on_message :failing_handler
 
@@ -308,9 +308,9 @@ describe Peribot::Service do
       it 'sends one message and logs an error' do
         expect(postprocessor).to receive(:accept).with(reply)
         expect(bot).to receive(:log) do |msg|
-          fail unless msg =~ /exception =/ # make sure exception is logged
-          fail unless msg =~ /message =/   # make sure message is logged
-          fail unless msg =~ /#test this/  # make sure message text is there
+          raise unless msg =~ /exception =/ # make sure exception is logged
+          raise unless msg =~ /message =/   # make sure message is logged
+          raise unless msg =~ /#test this/  # make sure message text is there
         end
 
         instance = subclass.new bot, postprocessor

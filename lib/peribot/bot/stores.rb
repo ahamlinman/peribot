@@ -31,7 +31,7 @@ module Peribot
       #
       # @param dir [String] The directory to save/load from
       def setup_store_directory(dir)
-        fail 'No store directory defined' unless dir
+        raise 'No store directory defined' unless dir
 
         # Concurrent::Map#initialize accepts a block that will be called to
         # initialize nonexistent values. The documentation doesn't make this

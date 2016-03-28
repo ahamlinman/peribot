@@ -82,7 +82,7 @@ describe Peribot::ProcessorChain do
       it 'outputs a log via the bot' do
         task = Class.new(Peribot::Processor) do
           def process(*)
-            fail 'just testing'
+            raise 'just testing'
           end
         end
         instance.register task
@@ -104,12 +104,12 @@ describe Peribot::ProcessorChain do
     context 'with a task raising the chain stop exception' do
       it 'stops processing without logging' do
         chain = Peribot::ProcessorChain.new(bot) do
-          fail 'the end action was reached'
+          raise 'the end action was reached'
         end
 
         task = Class.new(Peribot::Processor) do
           def process(*)
-            fail Peribot::ProcessorChain::Stop, 'this should not be seen'
+            raise Peribot::ProcessorChain::Stop, 'this should not be seen'
           end
         end
         chain.register task

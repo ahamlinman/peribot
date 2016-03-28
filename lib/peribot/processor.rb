@@ -27,7 +27,7 @@ module Peribot
     # @param _message_ [Hash] The message to be processed
     # @return [Hash] A message, potentially changed by this task
     def process(_message_)
-      fail "process method not implemented in #{self.class}"
+      raise "process method not implemented in #{self.class}"
     end
 
     # Stop further processing of this message in this pipeline. This prevents
@@ -42,7 +42,7 @@ module Peribot
     # the same as discarding a message. Thus, this method may also be called
     # as discard_message.
     def stop_processing
-      fail ProcessorChain::Stop
+      raise ProcessorChain::Stop
     end
     alias discard_message stop_processing
 

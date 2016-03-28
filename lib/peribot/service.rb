@@ -109,7 +109,7 @@ module Peribot
     # @return [Concurrent::IVar] An IVar that can be waited on if necessary
     def accept(message)
       unless message['text'] && message['group_id']
-        fail 'invalid message (must have text and group_id)'
+        raise 'invalid message (must have text and group_id)'
       end
 
       promise = Concurrent::Promise.fulfill []

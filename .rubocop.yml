@@ -2,6 +2,9 @@ Style/Documentation:
   Exclude:
     - 'lib/peribot/version.rb'
 
+Style/SignalException:
+  EnforcedStyle: only_raise
+
 AllCops:
   TargetRubyVersion: 2.1
   Exclude:
