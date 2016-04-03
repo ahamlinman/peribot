@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'tmpdir'
 
 describe Peribot::Bot::Stores do
   let(:test_class) do
