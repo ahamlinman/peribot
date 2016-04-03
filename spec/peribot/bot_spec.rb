@@ -71,9 +71,14 @@ describe Peribot::Bot do
   describe '#use' do
     let(:collection) { double('service collection') }
 
-    it 'makes the collection register itself into the bot' do
+    it 'makes a collection register without arguments' do
       expect(collection).to receive(:register_into).with(instance)
       instance.use collection
+    end
+
+    it 'makes a collection register with arguments' do
+      expect(collection).to receive(:register_into).with(instance, 1, kw: 'yes')
+      instance.use collection, 1, kw: 'yes'
     end
   end
 

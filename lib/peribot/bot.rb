@@ -60,8 +60,8 @@ module Peribot
     # @param collection [Module] A collection of things for this bot to use
     # @example Use Peribot::GroupMe in a bot
     #   @bot.use Peribot::GroupMe
-    def use(collection)
-      collection.register_into self
+    def use(collection, *args)
+      collection.register_into self, *args
     end
 
     # A simple logging function for use by Peribot components. Outputs the
