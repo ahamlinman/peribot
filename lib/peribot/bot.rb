@@ -50,6 +50,20 @@ module Peribot
       services << service unless services.include? service
     end
 
+    # Use a collection of services or other things in this bot. This is
+    # designed for modules like Peribot::GroupMe that define a `register_into`
+    # method which integrates multiple services into a single bot. It feels a
+    # bit more natural (closer to service registration) to have the bot "use" a
+    # collection of services than to have a collection of services "register
+    # itself into" a bot.
+    #
+    # @param collection [Module] A collection of things for this bot to use
+    # @example Use Peribot::GroupMe in a bot
+    #   @bot.use Peribot::GroupMe
+    def use(collection)
+      collection.register_into self
+    end
+
     # A simple logging function for use by Peribot components. Outputs the
     # given message to stderr with a "[Peribot]" prefix.
     #

@@ -68,6 +68,15 @@ describe Peribot::Bot do
     end
   end
 
+  describe '#use' do
+    let(:collection) { double('service collection') }
+
+    it 'makes the collection register itself into the bot' do
+      expect(collection).to receive(:register_into).with(instance)
+      instance.use collection
+    end
+  end
+
   describe '#log' do
     it 'logs messages to stderr with a prefix' do
       expect { instance.log 'stuff' }.to output("[Peribot] stuff\n").to_stderr
