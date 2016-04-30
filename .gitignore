@@ -2,6 +2,7 @@
 *.swp
 
 .yardoc
+.bundle
 bin
 coverage
 doc
