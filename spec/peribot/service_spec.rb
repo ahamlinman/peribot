@@ -28,6 +28,14 @@ describe Peribot::Service do
     expect(subclass.listen_handlers).to include(/match/ => :test)
   end
 
+  it 'registers itself into bot instances properly' do
+    subclass = Class.new(Peribot::Service)
+    bot = instance_double(Peribot::Bot)
+
+    expect(bot).to receive(:register).with(subclass)
+    subclass.register_into bot
+  end
+
   describe '#accept' do
     let(:base) { Peribot::Service }
     let(:message) { { 'group_id' => '1234', 'text' => '#test this' }.freeze }
