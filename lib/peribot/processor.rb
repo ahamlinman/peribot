@@ -8,7 +8,28 @@ module Peribot
   # acceptable. Keep in mind that all instances are initialized with a
   # {Peribot::Bot} that provides various services for tasks and other
   # components.
+  #
+  # It is further suggested that any subclasses implement a class-level
+  # {.register_into} method that inserts the class into the appropriate
+  # processor chain within a {Peribot::Bot}. For example, if you are writing a
+  # preprocessor, your implementation should be as follows:
+  #
+  #   def self.register_into(bot)
+  #     bot.preprocessor.register self
+  #   end
   class Processor
+    class << self
+      # Throw an error stating that this Processor class does not give a proper
+      # .register_into implementation. It is recommended that subclasses of
+      # Peribot::Processor define a class-level .register_into method so that
+      # they can be used as an argument to Peribot::Bot#use. The implementation
+      # should register the Processor into the appropriate processor chain
+      # (preprocessing, postprocessing, or sending).
+      def register_into(_)
+        raise NotImplementedError, "#{self} does not support Peribot::Bot#use"
+      end
+    end
+
     # Create a new instance of this middleware task.
     #
     # @param bot [Peribot] A Peribot instance
