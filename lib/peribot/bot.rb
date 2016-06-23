@@ -50,16 +50,23 @@ module Peribot
       services << service unless services.include? service
     end
 
-    # Use a collection of services or other things in this bot. This is
-    # designed for modules like Peribot::GroupMe that define a `register_into`
-    # method which integrates multiple services into a single bot. It feels a
-    # bit more natural (closer to service registration) to have the bot "use" a
-    # collection of services than to have a collection of services "register
-    # itself into" a bot.
+    # Have the bot make use of some given functionality. This general method is
+    # intended to be the primary means for configuring the functionalities of a
+    # {Peribot::Bot} instance.
+    #
+    # When called, this method will invoke the 'register_into' method of the
+    # given item with the bot instance as an argument, along with any
+    # additional arguments. The item can then register itself into the bot
+    # instance in the most appropriate manner. For example, calling this method
+    # with a single {Peribot::Service} will register that service with the bot.
+    # Calling this method with Peribot::GroupMe, on the other hand, will
+    # register a variety of senders and postprocessors that allow the bot to
+    # communicate with GroupMe.
     #
     # @param collection [Module] A collection of things for this bot to use
-    # @example Use Peribot::GroupMe in a bot
+    # @example Configure a simple Peribot instance
     #   @bot.use Peribot::GroupMe
+    #   @bot.use MyCustomService
     def use(collection, *args)
       collection.register_into self, *args
     end

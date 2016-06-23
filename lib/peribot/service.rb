@@ -88,8 +88,8 @@ module Peribot
       end
       alias on_listen on_hear
 
-      # Register this service into a Peribot::Bot. This allows for
-      # Peribot::Bot#use to be used on any Peribot::Service.
+      # Register this service into a {Peribot::Bot}. This allows for
+      # {Peribot::Bot#use} to be used on any {Peribot::Service}.
       #
       # @param bot [Peribot::Bot] A Peribot instance
       def register_into(bot)
