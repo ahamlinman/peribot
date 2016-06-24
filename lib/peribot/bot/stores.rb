@@ -45,9 +45,10 @@ module Peribot
           # PStore#new's second parameter enables thread safety (though perhaps
           # this is overkill?)
           store = PStore.new filename, true
-          initial = store.transaction { store[:data] } || {}
+          initial = store.transaction { store[:data] }
 
-          atom = Concurrent::Atom.new initial
+          atom = Peribot::Util::KeyValueAtom.new
+          atom.swap { initial.freeze } if initial
           atom.add_observer(&generate_store_observer_proc(store))
 
           map[key] = atom

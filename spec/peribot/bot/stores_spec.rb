@@ -35,7 +35,7 @@ describe Peribot::Bot::Stores do
     let(:instance) { test_class.new.setup tmpdir }
 
     it 'returns a Concurrent::Atom' do
-      expect(instance.stores['test']).to be_instance_of(Concurrent::Atom)
+      expect(instance.stores['test']).to be_a_kind_of(Concurrent::Atom)
     end
 
     it 'returns the same atom for a given key' do
@@ -51,6 +51,25 @@ describe Peribot::Bot::Stores do
 
       file = File.join tmpdir, 'test.store'
       expect(File.exist?(file)).to be true
+    end
+
+    it 'returns atoms that allow array-style access' do
+      instance.stores['mystore']['key'] = 'value'
+
+      file = File.join tmpdir, 'mystore.store'
+      expect(File.exist?(file)).to be true
+
+      store = PStore.new file
+      value = store.transaction { store[:data] }
+      expect(value).to eq('key' => 'value')
+    end
+
+    it 'reads from store files when they exist' do
+      file = File.join tmpdir, 'sample.store'
+      store = PStore.new file
+      store.transaction { store[:data] = { 'key' => 'value' } }
+
+      expect(instance.stores['sample']['key']).to eq('value')
     end
   end
 end
