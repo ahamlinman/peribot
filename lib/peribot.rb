@@ -3,6 +3,7 @@ require 'peribot/error_helpers'
 require 'peribot/processor'
 require 'peribot/processor_chain'
 require 'peribot/service'
+require 'peribot/util'
 require 'peribot/version'
 
 # The top-level namespace for Peribot.
