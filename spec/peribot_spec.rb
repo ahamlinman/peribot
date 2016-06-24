@@ -7,7 +7,7 @@ describe Peribot do
 
   describe '.new' do
     it 'creates a Peribot::Bot' do
-      bot = Peribot.new config_directory: ''
+      bot = Peribot.new
       expect(bot).to be_instance_of(Peribot::Bot)
     end
   end

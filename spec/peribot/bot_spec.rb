@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Peribot::Bot do
-  let(:instance) { Peribot::Bot.new(config_directory: '') }
+  let(:instance) { Peribot::Bot.new }
 
   let(:task) do
     Class.new(Peribot::Middleware::Task) do
@@ -43,6 +43,59 @@ describe Peribot::Bot do
     allow(service_instance).to receive(:accept)
 
     instance.accept({}).wait
+  end
+
+  context 'with an explicit store_file parameter' do
+    let(:instance) { Peribot::Bot.new(store_file: '') }
+
+    it 'sets the store file' do
+      expect(instance.store_file).to eq('')
+    end
+  end
+
+  describe '#config' do
+    before(:all) do
+      @filename = File.expand_path('../fixtures/config.yml', __dir__)
+    end
+
+    shared_context 'loads configuration' do
+      it 'loads the proper configuration' do
+        expect(instance.config).to eq('number' => 1, 'string' => 'hi')
+      end
+    end
+
+    context 'with an explicit configuration file' do
+      let(:instance) { Peribot::Bot.new(config_file: @filename) }
+      include_context 'loads configuration'
+    end
+
+    context 'with no explicit configuration file' do
+      context 'with configuration from the environment' do
+        before(:all) { ENV['PERIBOT_CONFIG'] = @filename }
+        after(:all) { ENV['PERIBOT_CONFIG'] = nil }
+        include_context 'loads configuration'
+      end
+
+      context 'with no environment configuration' do
+        before(:all) do
+          @cwd = Dir.pwd
+          Dir.chdir(File.expand_path('../fixtures', __dir__))
+        end
+        after(:all) { Dir.chdir @cwd }
+        include_context 'loads configuration'
+      end
+    end
+
+    context 'with a bad configuration file' do
+      before(:all) do
+        @filename = File.expand_path('../fixtures/bad_config.yml', __dir__)
+      end
+      let(:instance) { Peribot::Bot.new(config_file: @filename) }
+
+      it 'raises an error' do
+        expect { instance }.to raise_error(Psych::Exception)
+      end
+    end
   end
 
   describe '#accept' do
@@ -139,51 +192,6 @@ describe Peribot::Bot do
     it 'can register senders and give them messages' do
       instance.sender.register test_sender
       expect { instance.sender.accept({}).wait }.to output("{}\n").to_stdout
-    end
-  end
-
-  shared_context 'bad initialization' do
-    it 'raises an error when instantiated' do
-      expect { instance }.to raise_error(message)
-    end
-  end
-
-  context 'with an empty config_directory parameter' do
-    let(:instance) { Peribot::Bot.new }
-    let(:message) { 'No config directory defined' }
-    include_context 'bad initialization'
-  end
-
-  context 'with an explicit store_file parameter' do
-    let(:instance) do
-      Peribot::Bot.new(store_file: '', config_directory: '')
-    end
-
-    it 'sets the store file' do
-      expect(instance.store_file).to eq('')
-    end
-  end
-
-  context 'with no config or store parameters defined' do
-    let(:instance) { Peribot::Bot.new }
-
-    context 'with no environment configuration' do
-      let(:message) { 'No config directory defined' }
-      include_context 'bad initialization'
-    end
-
-    context 'with environment configuration' do
-      before(:all) do
-        ENV['PERIBOT_CONFIG_DIR'] = '.'
-      end
-
-      after(:all) do
-        ENV['PERIBOT_CONFIG_DIR'] = nil
-      end
-
-      it 'uses environment variables to locate the config dir' do
-        expect { instance }.to_not raise_error
-      end
     end
   end
 end

@@ -1,5 +1,5 @@
-require 'peribot/bot/configuration'
 require 'peribot/bot/stores'
+require 'yaml'
 
 module Peribot
   # A class representing a Peribot instance, which registers services and
@@ -7,7 +7,6 @@ module Peribot
   # storage, etc. This is the single most important part of a Peribot instance,
   # as it is what connects all other components together.
   class Bot
-    include Configuration
     include Stores
 
     # Create a new Peribot instance and set up its basic configuration options.
@@ -20,24 +19,23 @@ module Peribot
     #
     # @param config_directory [String] Directory with config files
     # @param store_directory [String] Directory for persistent stores
-    def initialize(config_directory: ENV['PERIBOT_CONFIG_DIR'],
-                   store_file: nil)
-      # See bot/configuration.rb
-      raise 'No config directory defined' unless config_directory
-      setup_config_directory config_directory
-
+    def initialize(config_file: nil, store_file: nil)
       # See bot/stores.rb
       @store_file = store_file
 
-      setup_middleware_chains
+      config_file ||= ENV['PERIBOT_CONFIG'] || File.expand_path('config.yml')
+      @config = load_config config_file
 
       @cache = Concurrent::Map.new do |map, key|
         map[key] = Peribot::Util::KeyValueAtom.new
       end
 
       @services = []
+
+      setup_middleware_chains
     end
-    attr_reader :preprocessor, :postprocessor, :sender, :services, :cache
+    attr_reader :preprocessor, :postprocessor, :sender,
+                :services, :cache, :config
 
     # Send a message to this bot instance and process it through all middleware
     # chains and services. This method is really just a convenient way to send
@@ -89,6 +87,12 @@ module Peribot
     end
 
     private
+
+    def load_config(filename)
+      YAML.load_file(filename).freeze
+    rescue Errno::ENOENT
+      {}.freeze
+    end
 
     # (private)
     #
