@@ -29,17 +29,17 @@ module Peribot
         # initialize nonexistent values. The documentation doesn't make this
         # obvious, but it seems to simply be incomplete at this time (as of
         # 2016-01-09).
-        @stores = Concurrent::Map.new(&generate_store_atom(dir))
+        @stores = Concurrent::Map.new(&generate_store_atom_proc(dir))
       end
 
       # (private)
       #
       # Return a proc that, when called, will create a Concurrent::Atom backed
-      # by a PStore.
+      # by a PStore in the given directory.
       #
       # @param dir [String] The directory to save/load PStore files from
       # @return [Proc] A proc to make atoms with store files in dir
-      def generate_store_atom(dir)
+      def generate_store_atom_proc(dir)
         proc do |map, key|
           filename = store_filename dir, key
           # PStore#new's second parameter enables thread safety (though perhaps
@@ -48,7 +48,7 @@ module Peribot
           initial = store.transaction { store[:data] } || {}
 
           atom = Concurrent::Atom.new initial
-          atom.add_observer(&generate_store_observer(store))
+          atom.add_observer(&generate_store_observer_proc(store))
 
           map[key] = atom
         end
@@ -71,7 +71,7 @@ module Peribot
       #
       # @param store [PStore] The store to save data to on update
       # @return [Proc] An observer proc that updates the store's data
-      def generate_store_observer(store)
+      def generate_store_observer_proc(store)
         proc do |_, _, new_value|
           store.transaction { store[:data] = new_value }
         end
