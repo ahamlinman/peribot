@@ -11,14 +11,20 @@ module Peribot
     include Stores
 
     # Create a new Peribot instance and set up its basic configuration options.
+    # All bot instances require a configuration directory (containing instance
+    # configuration files) and a store directory (to save information that
+    # should be persisted across multiple runs). These options can be provided
+    # directly as arguments. If not provided in this manner, Peribot will
+    # attempt to use the PERIBOT_CONFIG_DIR and PERIBOT_STORE_DIR environment
+    # variables.
     #
-    # @param options [Hash] Options for this bot instance
-    # @option options [String] :config_directory Directory with config files
-    # @option options [String] :store_directory Directory for persistent stores
-    def initialize(options = {})
+    # @param config_directory [String] Directory with config files
+    # @param store_directory [String] Directory for persistent stores
+    def initialize(config_directory: ENV['PERIBOT_CONFIG_DIR'],
+                   store_directory: ENV['PERIBOT_STORE_DIR'])
       # See bot/configuration.rb and bot/stores.rb
-      setup_config_directory options[:config_directory]
-      setup_store_directory options[:store_directory]
+      setup_config_directory config_directory
+      setup_store_directory store_directory
 
       setup_middleware_chains
 

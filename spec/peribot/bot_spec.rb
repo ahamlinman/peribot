@@ -143,13 +143,13 @@ describe Peribot::Bot do
     end
   end
 
-  context 'without a config_directory parameter' do
+  context 'with an empty config_directory parameter' do
     let(:instance) { Peribot::Bot.new(store_directory: '') }
     let(:message) { 'No config directory defined' }
     include_context 'bad initialization'
   end
 
-  context 'without a store_directory parameter' do
+  context 'with an empty store_directory parameter' do
     let(:instance) { Peribot::Bot.new(config_directory: '') }
     let(:message) { 'No store directory defined' }
     include_context 'bad initialization'
@@ -157,7 +157,26 @@ describe Peribot::Bot do
 
   context 'with no config or store directories defined' do
     let(:instance) { Peribot::Bot.new }
-    let(:message) { 'No config directory defined' }
-    include_context 'bad initialization'
+
+    context 'with no environment configuration' do
+      let(:message) { 'No config directory defined' }
+      include_context 'bad initialization'
+    end
+
+    context 'with environment configuration' do
+      before(:all) do
+        ENV['PERIBOT_CONFIG_DIR'] = '.'
+        ENV['PERIBOT_STORE_DIR'] = '.'
+      end
+
+      after(:all) do
+        ENV['PERIBOT_CONFIG_DIR'] = nil
+        ENV['PERIBOT_STORE_DIR'] = nil
+      end
+
+      it 'uses environment variables for initialization' do
+        expect { instance }.to_not raise_error
+      end
+    end
   end
 end
