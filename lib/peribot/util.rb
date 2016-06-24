@@ -1,3 +1,4 @@
+require 'peribot/util/block_hash_builder'
 require 'peribot/util/key_value_atom'
 
 module Peribot
