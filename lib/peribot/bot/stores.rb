@@ -9,72 +9,53 @@ module Peribot
     # soon as they succeed. Atoms are created (and their contents loaded from
     # storage) lazily as requested by components.
     module Stores
+      DEFAULT_STORE_FILE = File.expand_path 'peribot.pstore'
+
+      # Obtain a map of stores.
       def stores
-        @stores || raise('No store directory defined')
-      end
-
-      private
-
-      # (private)
-      #
-      # Set the store directory from which store files are saved to and loaded
-      # from. This is effectively done by create a thread-safe map that can be
-      # used to retrieve Atoms backed by these files.
-      #
-      # @param dir [String] The directory to save/load from
-      def setup_store_directory(dir)
-        raise 'No store directory defined' unless dir
-
         # Concurrent::Map#initialize accepts a block that will be called to
         # initialize nonexistent values. The documentation doesn't make this
         # obvious, but it seems to simply be incomplete at this time (as of
         # 2016-01-09).
-        @stores = Concurrent::Map.new(&generate_store_atom_proc(dir))
-      end
-
-      # (private)
-      #
-      # Return a proc that, when called, will create a Concurrent::Atom backed
-      # by a PStore in the given directory.
-      #
-      # @param dir [String] The directory to save/load PStore files from
-      # @return [Proc] A proc to make atoms with store files in dir
-      def generate_store_atom_proc(dir)
-        proc do |map, key|
-          filename = store_filename dir, key
-          # PStore#new's second parameter enables thread safety (though perhaps
-          # this is overkill?)
-          store = PStore.new filename, true
-          initial = store.transaction { store[:data] }
+        @stores ||= Concurrent::Map.new do |map, key|
+          initial = pstore.transaction { pstore[key] }
 
           atom = Peribot::Util::KeyValueAtom.new
           atom.swap { initial.freeze } if initial
-          atom.add_observer(&generate_store_observer_proc(store))
+          atom.add_observer(&generate_store_observer_proc(key))
 
           map[key] = atom
         end
       end
 
+      # Obtain the name of the file in which stores are being saved.
+      def store_file
+        @store_file ||= ENV['PERIBOT_STORE'] || DEFAULT_STORE_FILE
+      end
+
+      attr_writer :store_file
+
+      private
+
       # (private)
       #
-      # Get the path to a persistent store file based on a directory and key.
-      #
-      # @param dir [String] The directory of PStore files
-      # @param key [String] The name of the store
-      # @return [String] The full path to the store file
-      def store_filename(dir, key)
-        File.expand_path(File.join(dir, "#{key}.store"))
+      # Obtain or create a PStore to save data from stores.
+      def pstore
+        # PStore#new's second parameter enables thread safety (though perhaps
+        # this is overkill?)
+        @pstore ||= PStore.new store_file, true
       end
 
       # (private)
       #
-      # Generate an observer for the given store.
+      # Generate an observer that saves data under the given key in the shared
+      # PStore.
       #
-      # @param store [PStore] The store to save data to on update
+      # @param key The key under which data will be saved
       # @return [Proc] An observer proc that updates the store's data
-      def generate_store_observer_proc(store)
+      def generate_store_observer_proc(key)
         proc do |_, _, new_value|
-          store.transaction { store[:data] = new_value }
+          pstore.transaction { pstore[key] = new_value }
         end
       end
     end

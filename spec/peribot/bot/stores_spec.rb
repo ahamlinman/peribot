@@ -5,34 +5,35 @@ describe Peribot::Bot::Stores do
   let(:test_class) do
     Class.new do
       include Peribot::Bot::Stores
-      def setup(store_dir)
-        setup_store_directory store_dir
-        self
+      def initialize(filename = nil)
+        @store_file = filename
       end
     end
   end
 
-  let(:tmpdir) { Dir.mktmpdir }
-
-  context 'with no store directory set up' do
+  context 'with no explicit store file' do
     let(:instance) { test_class.new }
 
-    it 'raises an error when getting a store' do
-      expect { instance.stores[''] }.to raise_error(
-        'No store directory defined')
+    context 'with a filename in the environment' do
+      before(:all) { ENV['PERIBOT_STORE'] = '/path/to/peribot.pstore' }
+      after(:all) { ENV['PERIBOT_STORE'] = nil }
+
+      it 'uses the filename as the store file location' do
+        expect(instance.store_file).to eq('/path/to/peribot.pstore')
+      end
+    end
+
+    context 'without a filename in the environment' do
+      it 'uses the peribot.pstore file in the working directory' do
+        expect(instance.store_file).to eq(
+          File.expand_path('peribot.pstore'))
+      end
     end
   end
 
-  context 'when setting up a nil store directory' do
-    let(:instance) { test_class.new.setup nil }
-
-    it 'raises an error upon setup' do
-      expect { instance }.to raise_error('No store directory defined')
-    end
-  end
-
-  context 'with a store directory given' do
-    let(:instance) { test_class.new.setup tmpdir }
+  context 'with an explicit store file' do
+    let(:tmp_file) { File.join Dir.mktmpdir, 'peribot.pstore' }
+    let(:instance) { test_class.new tmp_file }
 
     it 'returns a Concurrent::Atom' do
       expect(instance.stores['test']).to be_a_kind_of(Concurrent::Atom)
@@ -46,30 +47,25 @@ describe Peribot::Bot::Stores do
       expect(instance.stores['test'].value).to eq({})
     end
 
-    it 'creates a persistent store file when writing' do
+    it 'saves to the configured store file' do
       instance.stores['test'].swap { 'It works!' }
 
-      file = File.join tmpdir, 'test.store'
-      expect(File.exist?(file)).to be true
+      store = PStore.new tmp_file
+      value = store.transaction { store['test'] }
+
+      expect(value).to eq('It works!')
+    end
+
+    it 'reads initial values from existing store files' do
+      store = PStore.new tmp_file
+      store.transaction { store['sample'] = { 'key' => 'value' } }
+
+      expect(instance.stores['sample']['key']).to eq('value')
     end
 
     it 'returns atoms that allow array-style access' do
       instance.stores['mystore']['key'] = 'value'
-
-      file = File.join tmpdir, 'mystore.store'
-      expect(File.exist?(file)).to be true
-
-      store = PStore.new file
-      value = store.transaction { store[:data] }
-      expect(value).to eq('key' => 'value')
-    end
-
-    it 'reads from store files when they exist' do
-      file = File.join tmpdir, 'sample.store'
-      store = PStore.new file
-      store.transaction { store[:data] = { 'key' => 'value' } }
-
-      expect(instance.stores['sample']['key']).to eq('value')
+      expect(instance.stores['mystore']['key']).to eq('value')
     end
   end
 end

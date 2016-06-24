@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Peribot::Bot do
-  let(:instance) { Peribot::Bot.new(config_directory: '', store_directory: '') }
+  let(:instance) { Peribot::Bot.new(config_directory: '') }
 
   let(:task) do
     Class.new(Peribot::Middleware::Task) do
@@ -144,18 +144,22 @@ describe Peribot::Bot do
   end
 
   context 'with an empty config_directory parameter' do
-    let(:instance) { Peribot::Bot.new(store_directory: '') }
+    let(:instance) { Peribot::Bot.new }
     let(:message) { 'No config directory defined' }
     include_context 'bad initialization'
   end
 
-  context 'with an empty store_directory parameter' do
-    let(:instance) { Peribot::Bot.new(config_directory: '') }
-    let(:message) { 'No store directory defined' }
-    include_context 'bad initialization'
+  context 'with an explicit store_file parameter' do
+    let(:instance) do
+      Peribot::Bot.new(store_file: '', config_directory: '')
+    end
+
+    it 'sets the store file' do
+      expect(instance.store_file).to eq('')
+    end
   end
 
-  context 'with no config or store directories defined' do
+  context 'with no config or store parameters defined' do
     let(:instance) { Peribot::Bot.new }
 
     context 'with no environment configuration' do
@@ -166,15 +170,13 @@ describe Peribot::Bot do
     context 'with environment configuration' do
       before(:all) do
         ENV['PERIBOT_CONFIG_DIR'] = '.'
-        ENV['PERIBOT_STORE_DIR'] = '.'
       end
 
       after(:all) do
         ENV['PERIBOT_CONFIG_DIR'] = nil
-        ENV['PERIBOT_STORE_DIR'] = nil
       end
 
-      it 'uses environment variables for initialization' do
+      it 'uses environment variables to locate the config dir' do
         expect { instance }.to_not raise_error
       end
     end

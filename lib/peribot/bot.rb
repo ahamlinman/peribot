@@ -21,13 +21,13 @@ module Peribot
     # @param config_directory [String] Directory with config files
     # @param store_directory [String] Directory for persistent stores
     def initialize(config_directory: ENV['PERIBOT_CONFIG_DIR'],
-                   store_directory: ENV['PERIBOT_STORE_DIR'])
+                   store_file: nil)
+      # See bot/configuration.rb
       raise 'No config directory defined' unless config_directory
-      raise 'No store directory defined' unless store_directory
-
-      # See bot/configuration.rb and bot/stores.rb
       setup_config_directory config_directory
-      setup_store_directory store_directory
+
+      # See bot/stores.rb
+      @store_file = store_file
 
       setup_middleware_chains
 
