@@ -32,7 +32,7 @@ module Peribot
       setup_middleware_chains
 
       @cache = Concurrent::Map.new do |map, key|
-        map[key] = Concurrent::Atom.new({})
+        map[key] = Peribot::Util::KeyValueAtom.new
       end
 
       @services = []
