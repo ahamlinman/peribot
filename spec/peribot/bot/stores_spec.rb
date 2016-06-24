@@ -18,7 +18,8 @@ describe Peribot::Bot::Stores do
     let(:instance) { test_class.new }
 
     it 'raises an error when getting a store' do
-      expect { instance.store '' }.to raise_error('No store directory defined')
+      expect { instance.stores[''] }.to raise_error(
+        'No store directory defined')
     end
   end
 
@@ -34,19 +35,19 @@ describe Peribot::Bot::Stores do
     let(:instance) { test_class.new.setup tmpdir }
 
     it 'returns a Concurrent::Atom' do
-      expect(instance.store('test')).to be_instance_of(Concurrent::Atom)
+      expect(instance.stores['test']).to be_instance_of(Concurrent::Atom)
     end
 
     it 'returns the same atom for a given key' do
-      expect(instance.store('test')).to equal(instance.store('test'))
+      expect(instance.stores['test']).to equal(instance.stores['test'])
     end
 
     it 'defaults to an empty hash as its value' do
-      expect(instance.store('test').value).to eq({})
+      expect(instance.stores['test'].value).to eq({})
     end
 
     it 'creates a persistent store file when writing' do
-      instance.store('test').swap { 'It works!' }
+      instance.stores['test'].swap { 'It works!' }
 
       file = File.join tmpdir, 'test.store'
       expect(File.exist?(file)).to be true

@@ -9,19 +9,11 @@ module Peribot
     # soon as they succeed. Atoms are created (and their contents loaded from
     # storage) lazily as requested by components.
     module Stores
-      # Obtain a store based on a given key.
-      #
-      # @param key [String] The key for the store
-      # @return [Concurrent::Atom] A Concurrent::Atom representing the store
-      def store(key)
-        store_map[key.to_s]
-      rescue NoMethodError
-        raise 'No store directory defined'
+      def stores
+        @stores || raise('No store directory defined')
       end
 
       private
-
-      attr_reader :store_map
 
       # (private)
       #
@@ -37,7 +29,7 @@ module Peribot
         # initialize nonexistent values. The documentation doesn't make this
         # obvious, but it seems to simply be incomplete at this time (as of
         # 2016-01-09).
-        @store_map = Concurrent::Map.new(&generate_store_atom(dir))
+        @stores = Concurrent::Map.new(&generate_store_atom(dir))
       end
 
       # (private)
