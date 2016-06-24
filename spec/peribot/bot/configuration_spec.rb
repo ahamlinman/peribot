@@ -68,4 +68,21 @@ describe Peribot::Bot::Configuration do
       expect { instance.config }.to raise_error(Psych::Exception)
     end
   end
+
+  context 'with DSL-style block configuration' do
+    let(:instance) do
+      instance = test_class.new
+      instance.configure do
+        key 'value'
+        group { key 'value' }
+      end
+
+      instance
+    end
+
+    it 'uses configuration from the block' do
+      expected = { 'key' => 'value', 'group' => { 'key' => 'value' } }
+      expect(instance.config).to eq(expected)
+    end
+  end
 end

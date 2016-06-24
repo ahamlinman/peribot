@@ -6,8 +6,16 @@ module Peribot
     # This module provides functionality for configuring and working with the
     # configuration of Peribot::Bot instances.
     module Configuration
+      # Obtain the saved configuration (loading it if necessary).
       def config
-        @config ||= load_config.freeze
+        @config || configure(load_config.freeze)
+      end
+
+      # Set the configuration from a given Hash or through a block (for
+      # DSL-style configuration).
+      def configure(config = nil, &block)
+        config ||= Peribot::Util::BlockHashBuilder.build(&block)
+        @config = config.dup.freeze
       end
 
       private
