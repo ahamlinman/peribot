@@ -26,7 +26,7 @@ module Peribot
       @config_file = config_file
       @store_file = store_file
 
-      @cache = Concurrent::Map.new do |map, key|
+      @caches = Concurrent::Map.new do |map, key|
         map[key] = Peribot::Util::KeyValueAtom.new
       end
 
@@ -34,8 +34,7 @@ module Peribot
 
       setup_middleware_chains
     end
-    attr_reader :preprocessor, :postprocessor, :sender,
-                :services, :cache
+    attr_reader :preprocessor, :postprocessor, :sender, :services, :caches
 
     # Send a message to this bot instance and process it through all middleware
     # chains and services. This method is really just a convenient way to send

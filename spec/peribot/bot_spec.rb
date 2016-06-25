@@ -96,15 +96,15 @@ describe Peribot::Bot do
     end
   end
 
-  describe '#cache' do
+  describe '#caches' do
     it 'creates temporary Concurrent::Atom stores' do
-      instance.cache['test'].swap { |o| o.merge('works' => true) }
-      expect(instance.cache['test'].value).to eq('works' => true)
+      instance.caches['test'].swap { |o| o.merge('works' => true) }
+      expect(instance.caches['test'].value).to eq('works' => true)
     end
 
     it 'allows array-style access' do
-      instance.cache['test']['key'] = 'value'
-      expect(instance.cache['test']['key']).to eq('value')
+      instance.caches['test']['key'] = 'value'
+      expect(instance.caches['test']['key']).to eq('value')
     end
   end
 
