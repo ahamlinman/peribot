@@ -111,7 +111,7 @@ describe Peribot::Bot do
   describe '#preprocessor' do
     let(:service) do
       Class.new(Peribot::Service) do
-        def handle(message)
+        def handle(message:)
           puts message.inspect
           puts message.frozen?
         end

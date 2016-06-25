@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Peribot::Service do
   it 'supports message handlers in subclasses' do
     subclass = Class.new(Peribot::Service) do
-      def test(*); end
+      def test(**); end
       on_message :test
     end
 
@@ -12,7 +12,7 @@ describe Peribot::Service do
 
   it 'supports command handlers in subclasses' do
     subclass = Class.new(Peribot::Service) do
-      def test(*); end
+      def test(**); end
       on_command :cmd, :test
     end
 
@@ -21,7 +21,7 @@ describe Peribot::Service do
 
   it 'supports listen handlers in subclasses' do
     subclass = Class.new(Peribot::Service) do
-      def test(*); end
+      def test(**); end
       on_hear(/match/, :test)
     end
 
@@ -53,7 +53,7 @@ describe Peribot::Service do
     context 'with a message handler' do
       let(:subclass) do
         Class.new(base) do
-          def test_handler(message)
+          def test_handler(message:)
             {
               'group_id' => message['group_id'],
               'text' => 'Success!',
@@ -83,7 +83,7 @@ describe Peribot::Service do
     context 'with a command handler' do
       let(:subclass) do
         Class.new(base) do
-          def test_handler(command, arguments, message)
+          def test_handler(command:, arguments:, message:)
             {
               'group_id' => message['group_id'],
               'text' => 'Success!',
@@ -168,12 +168,12 @@ describe Peribot::Service do
     context 'with multiple command handlers' do
       let(:subclass) do
         Class.new(base) do
-          def test_handler(*)
+          def test_handler(**)
             'first test'
           end
           on_command :test, :test_handler
 
-          def testing_handler(*)
+          def testing_handler(**)
             'second test'
           end
           on_command :testing, :testing_handler
@@ -198,7 +198,7 @@ describe Peribot::Service do
     context 'with a listen handler' do
       let(:subclass) do
         Class.new(base) do
-          def listen_handler(_match, message)
+          def listen_handler(message:, **)
             { 'group_id' => message['group_id'], 'text' => 'Success!' }
           end
           on_hear(/this/, :listen_handler)
@@ -226,7 +226,7 @@ describe Peribot::Service do
     context 'with a handler using the bot instance' do
       let(:subclass) do
         Class.new(base) do
-          def handler(*)
+          def handler(**)
             bot.log 'test'
           end
           on_message :handler
@@ -264,7 +264,7 @@ describe Peribot::Service do
         Class.new(base) do
           private
 
-          def handler(*)
+          def handler(**)
             'Success!'
           end
           on_message :handler
@@ -282,7 +282,7 @@ describe Peribot::Service do
     context 'with a handler returning multiple messages' do
       let(:subclass) do
         Class.new(base) do
-          def handler(*)
+          def handler(**)
             ['Success!', { 'another' => 'reply' }]
           end
           on_message :handler
@@ -301,12 +301,12 @@ describe Peribot::Service do
     context 'with a handler that raises an error' do
       let(:subclass) do
         Class.new(base) do
-          def failing_handler(*)
+          def failing_handler(**)
             raise 'This is just part of the test.'
           end
           on_message :failing_handler
 
-          def succeeding_handler(*)
+          def succeeding_handler(**)
             'Success!'
           end
           on_message :succeeding_handler
@@ -329,7 +329,7 @@ describe Peribot::Service do
     context 'with a message handler registered multiple times' do
       let(:subclass) do
         Class.new(base) do
-          def message(*)
+          def message(**)
             'Message!'
           end
           on_message :message
@@ -348,7 +348,7 @@ describe Peribot::Service do
     context 'with a command handler registered multiple times' do
       let(:subclass) do
         Class.new(base) do
-          def command(*)
+          def command(**)
             'Command!'
           end
           on_command :test, :command
@@ -367,7 +367,7 @@ describe Peribot::Service do
     context 'with a listen handler registered multiple times' do
       let(:subclass) do
         Class.new(base) do
-          def listen(match, _)
+          def listen(match:, **)
             match[1]
           end
           on_hear(/bad handler/, :listen)
