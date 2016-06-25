@@ -18,11 +18,14 @@ module Peribot
         @config = config.dup.freeze
       end
 
+      def config_file
+        @config_file ||= ENV['PERIBOT_CONFIG'] || File.expand_path('config.yml')
+      end
+
       private
 
       def load_config
-        @config_file ||= ENV['PERIBOT_CONFIG'] || File.expand_path('config.yml')
-        YAML.load_file(@config_file).freeze
+        YAML.load_file(config_file).freeze
       rescue Errno::ENOENT
         raise 'Could not find configuration'
       end
