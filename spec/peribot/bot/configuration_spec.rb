@@ -4,62 +4,85 @@ describe Peribot::Bot::Configuration do
   let(:test_class) do
     Class.new do
       include Peribot::Bot::Configuration
-      def setup(conf_dir)
-        setup_config_directory conf_dir
-        self
+      def initialize(filename = nil)
+        @config_file = filename
       end
     end
   end
 
-  let(:dir) { File.expand_path('../../../fixtures/config', __FILE__) }
-  let(:empty_dir) { File.expand_path('../../../fixtures/empty', __FILE__) }
-  let(:error_dir) { File.expand_path('../../../fixtures/error', __FILE__) }
-  let(:file) { File.join(dir, 'test.conf') }
-  let(:contents) { { 'number' => 1, 'string' => 'It works!' } }
+  before(:all) do
+    @filename = File.expand_path('../../fixtures/config.yml', __dir__)
+  end
 
-  context 'with no config directory set up' do
-    let(:instance) { test_class.new }
+  let(:instance) { test_class.new @filename }
 
-    it 'raises an error when retrieving configuration' do
-      expect { instance.config }.to raise_error('No config directory defined')
+  shared_context 'loads configuration' do
+    it 'loads the proper configuration' do
+      expect(instance.config).to eq('number' => 1, 'string' => 'hi')
     end
   end
 
-  context 'when setting up a nil config directory' do
-    let(:instance) { test_class.new.setup nil }
+  context 'with an explicit configuration file' do
+    let(:instance) { Peribot::Bot.new(config_file: @filename) }
+    include_context 'loads configuration'
+  end
 
-    it 'raises an error upon setup' do
-      expect { instance }.to raise_error('No config directory defined')
+  context 'with no explicit configuration file' do
+    context 'with configuration from the environment' do
+      before(:all) { ENV['PERIBOT_CONFIG'] = @filename }
+      after(:all) { ENV['PERIBOT_CONFIG'] = nil }
+      include_context 'loads configuration'
+    end
+
+    context 'with a default file' do
+      before(:all) do
+        @cwd = Dir.pwd
+        Dir.chdir(File.expand_path('../../fixtures', __dir__))
+      end
+      after(:all) { Dir.chdir @cwd }
+      include_context 'loads configuration'
+    end
+
+    context 'with no default file' do
+      before(:all) do
+        @cwd = Dir.pwd
+        Dir.chdir(File.expand_path('../../fixtures/empty', __dir__))
+      end
+      after(:all) { Dir.chdir @cwd }
+      let(:instance) { test_class.new }
+
+      it 'raises an error' do
+        expect { instance.config }.to raise_error(
+          'Could not find configuration')
+      end
     end
   end
 
-  context 'with a config directory given' do
-    let(:instance) { test_class.new.setup dir }
-
-    it 'loads configuration files in the directory' do
-      expect(File.exist?(file)).to be true
-      expect(instance.config['test']).to eq(contents)
-      expect(instance.config).to include('other')
+  context 'with a bad configuration file' do
+    before(:all) do
+      @filename = File.expand_path('../../fixtures/bad_config.yml', __dir__)
     end
+    let(:instance) { test_class.new @filename }
 
-    it 'freezes the config object' do
-      expect(instance.config).to be_frozen
+    it 'raises an error' do
+      expect { instance.config }.to raise_error(Psych::Exception)
     end
   end
 
-  context 'with a config directory containing no files' do
-    let(:instance) { test_class.new.setup empty_dir }
+  context 'with DSL-style block configuration' do
+    let(:instance) do
+      instance = test_class.new
+      instance.configure do
+        key 'value'
+        group { key 'value' }
+      end
 
-    it 'returns an empty hash' do
-      expect(instance.config).to eq({})
+      instance
     end
-  end
 
-  context 'with a directory containing invalid files' do
-    let(:instance) { test_class.new.setup error_dir }
-
-    it 'raises a syntax error during parsing' do
-      expect { instance.config }.to raise_error(Psych::SyntaxError)
+    it 'uses configuration from the block' do
+      expected = { 'key' => 'value', 'group' => { 'key' => 'value' } }
+      expect(instance.config).to eq(expected)
     end
   end
 end

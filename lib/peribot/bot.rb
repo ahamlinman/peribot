@@ -1,5 +1,6 @@
 require 'peribot/bot/configuration'
 require 'peribot/bot/stores'
+require 'yaml'
 
 module Peribot
   # A class representing a Peribot instance, which registers services and
@@ -20,21 +21,20 @@ module Peribot
     #
     # @param config_directory [String] Directory with config files
     # @param store_directory [String] Directory for persistent stores
-    def initialize(config_directory: ENV['PERIBOT_CONFIG_DIR'],
-                   store_directory: ENV['PERIBOT_STORE_DIR'])
+    def initialize(config_file: nil, store_file: nil)
       # See bot/configuration.rb and bot/stores.rb
-      setup_config_directory config_directory
-      setup_store_directory store_directory
+      @config_file = config_file
+      @store_file = store_file
 
-      setup_middleware_chains
-
-      @cache = Concurrent::Map.new do |map, key|
-        map[key] = Concurrent::Atom.new({})
+      @caches = Concurrent::Map.new do |map, key|
+        map[key] = Peribot::Util::KeyValueAtom.new
       end
 
       @services = []
+
+      setup_middleware_chains
     end
-    attr_reader :preprocessor, :postprocessor, :sender, :services, :cache
+    attr_reader :preprocessor, :postprocessor, :sender, :services, :caches
 
     # Send a message to this bot instance and process it through all middleware
     # chains and services. This method is really just a convenient way to send

@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Peribot::Bot do
-  let(:instance) { Peribot::Bot.new(config_directory: '', store_directory: '') }
+  let(:instance) { Peribot::Bot.new }
 
   let(:task) do
     Class.new(Peribot::Middleware::Task) do
@@ -43,6 +43,14 @@ describe Peribot::Bot do
     allow(service_instance).to receive(:accept)
 
     instance.accept({}).wait
+  end
+
+  context 'with an explicit store_file parameter' do
+    let(:instance) { Peribot::Bot.new(store_file: '') }
+
+    it 'sets the store file' do
+      expect(instance.store_file).to eq('')
+    end
   end
 
   describe '#accept' do
@@ -88,10 +96,15 @@ describe Peribot::Bot do
     end
   end
 
-  describe '#cache' do
+  describe '#caches' do
     it 'creates temporary Concurrent::Atom stores' do
-      instance.cache['test'].swap { |o| o.merge('works' => true) }
-      expect(instance.cache['test'].value).to eq('works' => true)
+      instance.caches['test'].swap { |o| o.merge('works' => true) }
+      expect(instance.caches['test'].value).to eq('works' => true)
+    end
+
+    it 'allows array-style access' do
+      instance.caches['test']['key'] = 'value'
+      expect(instance.caches['test']['key']).to eq('value')
     end
   end
 
@@ -134,49 +147,6 @@ describe Peribot::Bot do
     it 'can register senders and give them messages' do
       instance.sender.register test_sender
       expect { instance.sender.accept({}).wait }.to output("{}\n").to_stdout
-    end
-  end
-
-  shared_context 'bad initialization' do
-    it 'raises an error when instantiated' do
-      expect { instance }.to raise_error(message)
-    end
-  end
-
-  context 'with an empty config_directory parameter' do
-    let(:instance) { Peribot::Bot.new(store_directory: '') }
-    let(:message) { 'No config directory defined' }
-    include_context 'bad initialization'
-  end
-
-  context 'with an empty store_directory parameter' do
-    let(:instance) { Peribot::Bot.new(config_directory: '') }
-    let(:message) { 'No store directory defined' }
-    include_context 'bad initialization'
-  end
-
-  context 'with no config or store directories defined' do
-    let(:instance) { Peribot::Bot.new }
-
-    context 'with no environment configuration' do
-      let(:message) { 'No config directory defined' }
-      include_context 'bad initialization'
-    end
-
-    context 'with environment configuration' do
-      before(:all) do
-        ENV['PERIBOT_CONFIG_DIR'] = '.'
-        ENV['PERIBOT_STORE_DIR'] = '.'
-      end
-
-      after(:all) do
-        ENV['PERIBOT_CONFIG_DIR'] = nil
-        ENV['PERIBOT_STORE_DIR'] = nil
-      end
-
-      it 'uses environment variables for initialization' do
-        expect { instance }.to_not raise_error
-      end
     end
   end
 end

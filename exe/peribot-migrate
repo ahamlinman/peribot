@@ -1,0 +1,118 @@
+#!/usr/bin/env ruby
+
+# peribot-migrate: Upgrade from old-style (<= 0.6.x) directory-based
+# configuration and storage to new-style (>= 0.7.x) file-based configuration
+# and storage
+
+require 'optparse'
+require 'pstore'
+require 'yaml'
+
+# Migrator to convert directory-style configuration to single-file YAML
+# configuration.
+module ConfigMigrator
+  module_function
+
+  def migrate(in_dir, out_file)
+    out_file ||= 'config.yml'
+
+    puts "Migrating '#{in_dir}' to '#{out_file}'"
+
+    config = build_config_from in_dir
+
+    File.open(out_file, 'w') do |f|
+      f.write(YAML.dump(config))
+    end
+
+    puts
+    puts 'Automatic migration complete!'
+    puts 'You may wish to examine and reformat the generated file.'
+  end
+
+  class << self
+    private
+
+    def build_config_from(in_dir)
+      Dir[File.join(in_dir, '*.conf')].reduce({}) do |opts, filename|
+        opts.merge(File.basename(filename, '.*') => YAML.load_file(filename))
+      end
+    end
+  end
+end
+
+# Migrator to convert a directory-style datastore to a single-file datastore.
+module StoreMigrator
+  module_function
+
+  def migrate(in_dir, out_file)
+    out_file ||= 'peribot.pstore'
+
+    puts "Migrating '#{in_dir}' to '#{out_file}'"
+
+    config = build_store_from in_dir
+
+    store = PStore.new(out_file)
+    store.transaction do
+      config.each { |k, v| store[k] = v }
+    end
+
+    puts
+    puts 'Automatic migration complete!'
+  end
+
+  class << self
+    private
+
+    def build_store_from(in_dir)
+      Dir[File.join(in_dir, '*.store')].reduce({}) do |data, filename|
+        store = PStore.new(filename)
+        store.transaction do
+          data.merge(File.basename(filename, '.*') =>
+                     store[:data])
+        end
+      end
+    end
+  end
+end
+
+Options = Struct.new(:type, :src, :dest)
+options = Options.new
+
+parser = OptionParser.new do |opts|
+  opts.banner = 'Usage: peribot-migrate -t (config|stores) -i dir/ [-d out]'
+  opts.separator ''
+
+  opts.on('-t', '--type TYPE', [:config, :stores],
+          'Conversion type ("config" or "stores")') do |t|
+    options.type = t
+  end
+
+  opts.on('-i', '--in SRC',
+          'Source directory containing config or store files') do |s|
+    options.src = s
+  end
+
+  opts.on('-o', '--out DEST',
+          'File to write output to (default: config.yml for config, '\
+          'peribot.pstore for stores)') do |d|
+    options.dest = d
+  end
+
+  opts.on('-h', '--help', 'Display this help message') do
+    puts opts
+    exit 0
+  end
+end
+parser.parse!
+
+unless options.type && options.src
+  puts parser
+  exit 1
+end
+
+migrator = case options.type
+           when :config then ConfigMigrator
+           when :stores then StoreMigrator
+           end
+
+migrator.migrate options.src, options.dest

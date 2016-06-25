@@ -3,55 +3,31 @@ require 'yaml'
 
 module Peribot
   class Bot
-    # This module provides the implementation of Peribot's configuration
-    # facilities. The configuration hash for an instance is lazily loaded from
-    # YAML files with a .conf extension in a specified directory. Filenames
-    # make up hash keys, and the value for each key represents the content of
-    # the file. The configuration hash is read-only (frozen) to help simplify
-    # thread-safe access and usage given Peribot's concurrent nature.
+    # This module provides functionality for configuring and working with the
+    # configuration of Peribot::Bot instances.
     module Configuration
-      # Retrieve a read-only object containing information from the
-      # configuration directory.
-      #
-      # @return [Hash] The full configuration for the bot instance
+      # Obtain the saved configuration (loading it if necessary).
       def config
-        config_builder.value || (raise config_builder.reason)
-      rescue NoMethodError
-        raise 'No config directory defined'
+        @config || configure(load_config.freeze)
+      end
+
+      # Set the configuration from a given Hash or through a block (for
+      # DSL-style configuration).
+      def configure(config = nil, &block)
+        config ||= Peribot::Util::BlockHashBuilder.build(&block)
+        @config = config.dup.freeze
+      end
+
+      def config_file
+        @config_file ||= ENV['PERIBOT_CONFIG'] || File.expand_path('config.yml')
       end
 
       private
 
-      attr_reader :config_builder
-
-      # (private)
-      #
-      # Set the configuration directory from which information is loaded and
-      # ensure that the object is built the next time the configuration is
-      # requested.
-      #
-      # @param dir [String] The directory to load from
-      def setup_config_directory(dir)
-        raise 'No config directory defined' unless dir
-
-        @config_builder = Concurrent::Delay.new do
-          build_config(dir).freeze
-        end
-      end
-
-      # (private)
-      #
-      # Build a configuration object by loading YAML configuration files from a
-      # directory.
-      #
-      # @param dir [String] The directory to load from
-      # @return [Hash] The full instance configuration
-      def build_config(dir)
-        files = Dir[File.join(dir, '*.conf')]
-        files.reduce({}) do |config, file|
-          basename = File.basename file, '.*'
-          config.merge(basename => YAML.load_file(file))
-        end
+      def load_config
+        YAML.load_file(config_file).freeze
+      rescue Errno::ENOENT
+        raise 'Could not find configuration'
       end
     end
   end
