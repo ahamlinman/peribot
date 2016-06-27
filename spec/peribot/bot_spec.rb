@@ -119,7 +119,9 @@ describe Peribot::Bot do
       end
     end
 
-    let(:msg) { { 'group_id' => '1', 'text' => 'test' } }
+    let(:msg) do
+      { service: :groupme, group: 'groupme/1', text: 'test' }
+    end
     let(:result) { instance.preprocessor.accept(msg).value.each(&:wait) }
 
     it 'forwards frozen messages to services after processing' do

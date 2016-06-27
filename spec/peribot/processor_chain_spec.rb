@@ -77,7 +77,7 @@ describe Peribot::ProcessorChain do
     end
 
     context 'with a task raising an error' do
-      let(:message) { { 'test' => true } }
+      let(:message) { { test: true } }
 
       it 'outputs a log via the bot' do
         task = Class.new(Peribot::Processor) do
