@@ -117,13 +117,13 @@ module Peribot
     # @param message [Hash] The message to process
     # @return [Concurrent::IVar] An IVar that can be waited on if necessary
     def accept(message)
-      unless message['text'] && message['group_id']
-        raise 'invalid message (must have text and group_id)'
+      unless [:service, :group, :text].all? { |k| message[k] }
+        raise 'invalid message (must have text, service, and group)'
       end
 
       promise = Concurrent::Promise.fulfill []
       promise = chain_handlers promise, message
-      promise.then { |msgs| end_action msgs, message.fetch('group_id') }
+      promise.then { |msgs| end_action msgs, message }
     end
 
     private
@@ -161,7 +161,7 @@ module Peribot
     # @see chain_handlers
     def chain_command_handlers(promise, message)
       self.class.command_handlers.reduce(promise) do |prom, (cmd, handler)|
-        text = message.fetch 'text'
+        text = message.fetch :text
 
         safe_cmd = Regexp.quote(cmd)
         next prom unless text =~ /\A##{safe_cmd}(?: |\z)/
@@ -197,7 +197,7 @@ module Peribot
     # @param message [Hash] The message being processed
     # @return [Hash] A map from handler functions to match data
     def listen_matches(message)
-      text = message.fetch 'text'
+      text = message.fetch :text
 
       handlers = self.class.listen_handlers.map do |regex, handler|
         next unless text =~ regex
@@ -241,10 +241,10 @@ module Peribot
     # Send any messages created by handlers to the acceptor.
     #
     # @param replies [Array] Replies from handlers in this service
-    # @param gid [String] The default group to reply to (if not in a message)
-    def end_action(replies, gid)
+    # @param original [Hash] The message that we are replying to
+    def end_action(replies, original)
       msgs = replies.flatten.compact
-      msgs = convert_strings_to_replies msgs, gid
+      msgs = convert_strings_to_replies msgs, original
       msgs.each { |msg| acceptor.accept msg }
     end
 
@@ -254,12 +254,16 @@ module Peribot
     # only contains message hashes.
     #
     # @param replies [Array] An array of replies to a message
-    # @param gid [String] A group to reply to when a message does not have one
+    # @param original [Hash] The message that we are replying to
     # @return [Array<Hash>] A normalized array of replies
-    def convert_strings_to_replies(replies, gid)
+    def convert_strings_to_replies(replies, original)
       replies.map do |reply|
         next reply unless reply.instance_of? String
-        { 'group_id' => gid, 'text' => reply }
+        {
+          service: original[:service],
+          group: original[:group],
+          text: reply
+        }
       end
     end
   end
