@@ -32,7 +32,7 @@ module Peribot
   #   on_command :dostuff, :my_command_handler
   #
   # @example A listen handler
-  #   def my_listen_handler(match_data:, message:)
+  #   def my_listen_handler(match:, message:)
   #     someone_mentioned match_data[1]
   #   end
   #
@@ -210,19 +210,20 @@ module Peribot
     #
     # Get a proc that can be chained onto a promise to call a handler method.
     #
-    # @param message [Hash] The message being processed
-    #
-    # @overload handler_proc(handler, message)
+    # @overload handler_proc(handler, message:)
     #   Obtain a proc to call a message handler
+    #   @param message [Hash] The message being processed
     #
-    # @overload handler_proc(handler, cmd, args, message)
+    # @overload handler_proc(handler, command:, arguments:, message:)
     #   Obtain a proc to call a command handler
-    #   @param cmd [String] The command that was given
-    #   @param args [String] Arguments to the command
+    #   @param command [String] The command that was given
+    #   @param arguments [String] Arguments to the command
+    #   @param message [Hash] The message being processed
     #
-    # @overload handler_proc(handler, match, message)
+    # @overload handler_proc(handler, match:, message:)
     #   Obtain a proc to call a listen handler
     #   @param match [MatchData] Regex match information for the message
+    #   @param message [Hash] The message being processed
     #
     # @return [Proc] A proc that will call the handler
     def handler_proc(handler, **args)
