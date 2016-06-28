@@ -148,7 +148,8 @@ describe Peribot::Bot do
 
     it 'can register senders and give them messages' do
       instance.sender.register test_sender
-      expect { instance.sender.accept({}).wait }.to output("{}\n").to_stdout
+      expect { instance.sender.accept({}).each(&:wait) }
+        .to output("{}\n").to_stdout
     end
   end
 end

@@ -32,7 +32,7 @@ module Peribot
 
       @services = []
 
-      setup_middleware_chains
+      setup_middleware
     end
     attr_reader :preprocessor, :postprocessor, :sender, :services, :caches
 
@@ -89,9 +89,9 @@ module Peribot
 
     # (private)
     #
-    # Set up preprocessing, postprocessing, and sending chains for this bot
+    # Set up preprocessing, postprocessing, and sending middleware for this bot
     # instance.
-    def setup_middleware_chains
+    def setup_middleware
       @preprocessor = ProcessorChain.new(self) do |message|
         dispatch message.freeze
       end
@@ -100,7 +100,7 @@ module Peribot
         sender.accept message
       end
 
-      @sender = ProcessorChain.new(self)
+      @sender = ProcessorGroup.new(self)
     end
 
     # (private)
