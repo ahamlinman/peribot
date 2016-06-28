@@ -12,15 +12,15 @@ module Peribot
     include Stores
 
     # Create a new Peribot instance and set up its basic configuration options.
-    # All bot instances require a configuration directory (containing instance
-    # configuration files) and a store directory (to save information that
-    # should be persisted across multiple runs). These options can be provided
+    # All bot instances require a configuration file (containing instance
+    # configuration options) and a store file (to save information that should
+    # be persisted across multiple runs). These options can be provided
     # directly as arguments. If not provided in this manner, Peribot will
-    # attempt to use the PERIBOT_CONFIG_DIR and PERIBOT_STORE_DIR environment
+    # attempt to use the PERIBOT_CONFIG and PERIBOT_STORE environment
     # variables.
     #
-    # @param config_directory [String] Directory with config files
-    # @param store_directory [String] Directory for persistent stores
+    # @param config_file [String] The location of a YAML configuration file
+    # @param store_file [String] The location for the PStore file
     def initialize(config_file: nil, store_file: nil)
       # See bot/configuration.rb and bot/stores.rb
       @config_file = config_file
@@ -69,12 +69,12 @@ module Peribot
     # register a variety of senders and postprocessors that allow the bot to
     # communicate with GroupMe.
     #
-    # @param collection [Module] A collection of things for this bot to use
+    # @param item An item for this bot to use
     # @example Configure a simple Peribot instance
     #   @bot.use Peribot::GroupMe
     #   @bot.use MyCustomService
-    def use(collection, *args)
-      collection.register_into self, *args
+    def use(item, *args)
+      item.register_into self, *args
     end
 
     # A simple logging function for use by Peribot components. Outputs the
