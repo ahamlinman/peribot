@@ -22,7 +22,7 @@ module Peribot
       @tasks = []
     end
 
-    attr_reader :bot, :tasks
+    attr_reader :tasks
 
     # Register a task with this processor group. The given task will be
     # instantiated and used to process the message. Tasks will only be
@@ -44,5 +44,9 @@ module Peribot
                            .rescue { |e| log_failure error: e, message: msg }
       end
     end
+
+    private
+
+    attr_reader :bot
   end
 end
