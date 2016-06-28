@@ -101,7 +101,7 @@ describe Peribot::ProcessorChain do
       end
     end
 
-    context 'with a task raising the chain stop exception' do
+    context 'with a task raising the chain stop exception directly' do
       it 'stops processing without logging' do
         chain = Peribot::ProcessorChain.new(bot) do
           raise 'the end action was reached'
@@ -139,6 +139,24 @@ describe Peribot::ProcessorChain do
         end
 
         instance.accept({}).wait
+      end
+    end
+
+    context 'with a task returning nil' do
+      it 'stops processing without logging' do
+        chain = Peribot::ProcessorChain.new(bot) do
+          raise 'the end action was reached'
+        end
+
+        task = Class.new(Peribot::Processor) do
+          def process(*)
+            nil
+          end
+        end
+        chain.register task
+
+        expect(bot).to_not receive(:log)
+        chain.accept({}).wait
       end
     end
   end
