@@ -35,13 +35,7 @@ stay tuned for updates.
 
 ## Roadmap
 
-Peribot is currently at version 0.7.
-
-* For Peribot 0.8, I will be working on a standardized, service-agnostic format
-  for messages, as well as changes to how reply sending works and other small
-  breaking updates. This will require work on the part of authors of services
-  and senders. Services for previous Peribot versions are likely to be fully
-  incompatible with 0.8.x.
+Peribot is currently at version 0.8.
 
 As I have heard that others are interested in starting to use Peribot for their
 own projects, I think that these major changes will help correct some of my
