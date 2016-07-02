@@ -23,7 +23,9 @@ describe Peribot::ErrorHelpers do
 
   let(:bot) { instance_double(Peribot::Bot) }
   let(:tester) { ErrorTester.new bot }
-  let(:message) { { 'group_id' => '1', 'text' => 'Testing!' } }
+  let(:message) do
+    { service: :groupme, group: 'groupme/1', text: 'Testing!' }
+  end
   let(:error) { FakeError.new 'sample error' }
 
   describe '#log_failure' do

@@ -16,7 +16,7 @@ module Peribot
   # {on_command}, and {on_listen} for more about each handler type.
   #
   # @example A message handler
-  #   def my_handler(message)
+  #   def my_handler(message:)
   #     do_stuff_with message
   #   end
   #
@@ -24,7 +24,7 @@ module Peribot
   #   on_message :my_handler
   #
   # @example A command handler
-  #   def my_command_handler(command, arguments, message)
+  #   def my_command_handler(command:, arguments:, message:)
   #     do_stuff_for command, arguments
   #   end
   #
@@ -32,7 +32,7 @@ module Peribot
   #   on_command :dostuff, :my_command_handler
   #
   # @example A listen handler
-  #   def my_listen_handler(match_data, message)
+  #   def my_listen_handler(match:, message:)
   #     someone_mentioned match_data[1]
   #   end
   #
@@ -55,8 +55,8 @@ module Peribot
         end
       end
 
-      # Register a method that will be called with a message object every
-      # time a message is received.
+      # Register a method that will be called with a message object (via the
+      # message keyword) every time a message is received.
       #
       # @param handler [Symbol] The name of the method to be called
       def on_message(handler)
@@ -64,11 +64,12 @@ module Peribot
       end
 
       # Register a method that will be called with a command, arguments, and
-      # message every time a message's text begins with a particular command. A
-      # command is a hash (#) symbol followed by a word, while arguments make
-      # up all text appearing after the command. For example, in a weather
-      # service, the command "#weather Seattle, WA" would have "weather" as the
-      # command and "Seattle, WA" as the argument.
+      # message (via those respective keywords) every time a message's text
+      # begins with a particular command. A command is a hash (#) symbol
+      # followed by a word, while arguments make up all text appearing after
+      # the command. For example, in a weather service, the command "#weather
+      # Seattle, WA" would have "weather" as the command and "Seattle, WA" as
+      # the argument.
       #
       # @param command [Symbol] The command to look for
       # @param handler [Symbol] The name of the method to be called
@@ -77,9 +78,9 @@ module Peribot
       end
 
       # Register a method that will be called with match data and a message
-      # object every time a message's text matches a particular regex. Note
-      # that if you desire a case-insensitive match, you must include this
-      # option in your regex.
+      # object (via the match and message keywords) every time a message's text
+      # matches a particular regex. Note that if you desire a case-insensitive
+      # match, you must include this option in your regex.
       #
       # @param regex [Regexp] The regex to use when matching messages
       # @param handler [Symbol] The name of the method to be called
@@ -116,13 +117,13 @@ module Peribot
     # @param message [Hash] The message to process
     # @return [Concurrent::IVar] An IVar that can be waited on if necessary
     def accept(message)
-      unless message['text'] && message['group_id']
-        raise 'invalid message (must have text and group_id)'
+      unless [:service, :group, :text].all? { |k| message[k] }
+        raise 'invalid message (must have text, service, and group)'
       end
 
       promise = Concurrent::Promise.fulfill []
       promise = chain_handlers promise, message
-      promise.then { |msgs| end_action msgs, message.fetch('group_id') }
+      promise.then { |msgs| end_action msgs, message }
     end
 
     private
@@ -149,7 +150,7 @@ module Peribot
     # @see chain_handlers
     def chain_message_handlers(promise, message)
       self.class.message_handlers.reduce(promise) do |prom, handler|
-        prom.then(&handler_proc(handler, message))
+        prom.then(&handler_proc(handler, message: message))
       end
     end
 
@@ -160,7 +161,7 @@ module Peribot
     # @see chain_handlers
     def chain_command_handlers(promise, message)
       self.class.command_handlers.reduce(promise) do |prom, (cmd, handler)|
-        text = message.fetch 'text'
+        text = message.fetch :text
 
         safe_cmd = Regexp.quote(cmd)
         next prom unless text =~ /\A##{safe_cmd}(?: |\z)/
@@ -168,7 +169,8 @@ module Peribot
         args = text.split[1..-1].join(' ')
         args = nil if args.empty?
 
-        prom.then(&handler_proc(handler, cmd, args, message))
+        prom.then(&handler_proc(handler, command: cmd, arguments: args,
+                                         message: message))
       end
     end
 
@@ -179,7 +181,7 @@ module Peribot
     # @see chain_handlers
     def chain_listen_handlers(promise, message)
       listen_matches(message).reduce(promise) do |prom, (handler, match)|
-        prom.then(&handler_proc(handler, match, message))
+        prom.then(&handler_proc(handler, match: match, message: message))
       end
     end
 
@@ -195,7 +197,7 @@ module Peribot
     # @param message [Hash] The message being processed
     # @return [Hash] A map from handler functions to match data
     def listen_matches(message)
-      text = message.fetch 'text'
+      text = message.fetch :text
 
       handlers = self.class.listen_handlers.map do |regex, handler|
         next unless text =~ regex
@@ -208,27 +210,28 @@ module Peribot
     #
     # Get a proc that can be chained onto a promise to call a handler method.
     #
-    # @param message [Hash] The message being processed
-    #
-    # @overload handler_proc(handler, message)
+    # @overload handler_proc(handler, message:)
     #   Obtain a proc to call a message handler
+    #   @param message [Hash] The message being processed
     #
-    # @overload handler_proc(handler, cmd, args, message)
+    # @overload handler_proc(handler, command:, arguments:, message:)
     #   Obtain a proc to call a command handler
-    #   @param cmd [String] The command that was given
-    #   @param args [String] Arguments to the command
+    #   @param command [String] The command that was given
+    #   @param arguments [String] Arguments to the command
+    #   @param message [Hash] The message being processed
     #
-    # @overload handler_proc(handler, match, message)
+    # @overload handler_proc(handler, match:, message:)
     #   Obtain a proc to call a listen handler
     #   @param match [MatchData] Regex match information for the message
+    #   @param message [Hash] The message being processed
     #
     # @return [Proc] A proc that will call the handler
-    def handler_proc(*args, message)
+    def handler_proc(handler, **args)
       proc do |msgs|
         begin
-          msgs << __send__(*args, message)
+          msgs << __send__(handler, **args)
         rescue => error
-          log_failure error: error, message: message
+          log_failure error: error, message: args[:message]
           msgs
         end
       end
@@ -239,10 +242,10 @@ module Peribot
     # Send any messages created by handlers to the acceptor.
     #
     # @param replies [Array] Replies from handlers in this service
-    # @param gid [String] The default group to reply to (if not in a message)
-    def end_action(replies, gid)
+    # @param original [Hash] The message that we are replying to
+    def end_action(replies, original)
       msgs = replies.flatten.compact
-      msgs = convert_strings_to_replies msgs, gid
+      msgs = convert_strings_to_replies msgs, original
       msgs.each { |msg| acceptor.accept msg }
     end
 
@@ -252,12 +255,16 @@ module Peribot
     # only contains message hashes.
     #
     # @param replies [Array] An array of replies to a message
-    # @param gid [String] A group to reply to when a message does not have one
+    # @param original [Hash] The message that we are replying to
     # @return [Array<Hash>] A normalized array of replies
-    def convert_strings_to_replies(replies, gid)
+    def convert_strings_to_replies(replies, original)
       replies.map do |reply|
         next reply unless reply.instance_of? String
-        { 'group_id' => gid, 'text' => reply }
+        {
+          service: original[:service],
+          group: original[:group],
+          text: reply
+        }
       end
     end
   end

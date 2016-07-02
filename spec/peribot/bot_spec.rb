@@ -111,7 +111,7 @@ describe Peribot::Bot do
   describe '#preprocessor' do
     let(:service) do
       Class.new(Peribot::Service) do
-        def handle(message)
+        def handle(message:)
           puts message.inspect
           puts message.frozen?
         end
@@ -119,7 +119,9 @@ describe Peribot::Bot do
       end
     end
 
-    let(:msg) { { 'group_id' => '1', 'text' => 'test' } }
+    let(:msg) do
+      { service: :groupme, group: 'groupme/1', text: 'test' }
+    end
     let(:result) { instance.preprocessor.accept(msg).value.each(&:wait) }
 
     it 'forwards frozen messages to services after processing' do
@@ -146,7 +148,8 @@ describe Peribot::Bot do
 
     it 'can register senders and give them messages' do
       instance.sender.register test_sender
-      expect { instance.sender.accept({}).wait }.to output("{}\n").to_stdout
+      expect { instance.sender.accept({}).each(&:wait) }
+        .to output("{}\n").to_stdout
     end
   end
 end

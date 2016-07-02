@@ -41,31 +41,14 @@ module Peribot
     # following actions:
     # * Return the message unchanged
     # * Return a modified message
+    # * Return nil to discard the message and prevent further processing
     # * Raise an error to log it and prevent further processing
-    # * Call stop_processing to silently prevent further processing (not
-    #   recommended in most cases - sender tasks are a major exception)
     #
     # @param _message_ [Hash] The message to be processed
     # @return [Hash] A message, potentially changed by this task
     def process(_message_)
       raise "process method not implemented in #{self.class}"
     end
-
-    # Stop further processing of this message in this pipeline. This prevents
-    # any further tasks in the processor chain, including the end action, from
-    # running. However, it will not raise any error or give any other
-    # indication that processing has stopped. Use with caution during
-    # preprocessing and postprocessing, and feel free to use in sender tasks if
-    # you are sure that the message has been sent properly and no other senders
-    # will need it.
-    #
-    # Within the preprocessing and postprocessing chains, this is effectively
-    # the same as discarding a message. Thus, this method may also be called
-    # as discard_message.
-    def stop_processing
-      raise ProcessorChain::Stop
-    end
-    alias discard_message stop_processing
 
     private
 
