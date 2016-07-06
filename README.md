@@ -3,7 +3,8 @@
 Peribot is a message processing framework in Ruby, designed mainly to
 facilitate the creation of IRC-style bots for services like GroupMe. That is,
 it is explicitly designed to provide a common set of services for multiple
-"groups" at once (in contrast with frameworks like Hubot).
+"groups" at once (in contrast with frameworks like Hubot that generally operate
+with a single set of users).
 
 The framework is designed for responsiveness and ease of development. The
 concurrent processing model ensures that individual groups' actions don't lead
@@ -18,36 +19,40 @@ URLs.
 
 ## Development Status
 
-I consider Peribot to be beta-quality software. Breaking changes to the
-framework are possible at any time. However, I do use a form of semantic
-versioning to help reduce the impact of these changes. As the `MAJOR` version
-of Peribot is currently 0, I typically increment the `MINOR` version on
-breaking changes and the `PATCH` version on new features. When maintaining a
-bot, a version specifier such as `~> 0.6.0` will make your life easier.
+As of version 0.8, I consider Peribot to be of more-or-less release candidate
+quality, and I am not currently planning any major breaking changes to the
+framework. That being said, it is not widely tested or deployed outside of two
+bots that I personally operate, and breaking changes may still be possible in
+the future.
+
+In the event that breaking changes are made to Peribot, I use a form of semantic
+versioning to help reduce their impact. As the `MAJOR` version of Peribot is
+currently 0, I typically increment the `MINOR` version on breaking changes and
+the `PATCH` version on new features. When maintaining a bot, a version specifier
+such as `~> 0.8.0` in your Gemfile is recommended.
 
 ## Documentation
 
 Framework classes are [pretty
-well-documented](http://www.rubydoc.info/github/ahamlinman/peribot/master).
-However, I am considering simplified guides for service writers and bot
-maintainers as a future project after the completion of Peribot 0.8. Please
-stay tuned for updates.
-
-## Roadmap
-
-Peribot is currently at version 0.8.
-
-As I have heard that others are interested in starting to use Peribot for their
-own projects, I think that these major changes will help correct some of my
-poorer design decisions and provide a positive experience moving forward.
+well-documented](http://www.rubydoc.info/github/ahamlinman/peribot/master), and
+may be a good start toward understanding Peribot. I have also made several
+resources available on the [Peribot
+wiki](https://github.com/ahamlinman/peribot/wiki), including the [Zero to
+Peribot](https://github.com/ahamlinman/peribot/wiki/Zero-to-Peribot) tutorial
+(which is designed to help you set up a basic bot with Peribot). I plan on
+creating additional guides in the future. Stay tuned!
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at
+I highly encourage bug reports and pull requests on GitHub at
 https://github.com/ahamlinman/peribot. Please ensure that contributions are
 tested!
 
+I also welcome helpful comments and criticism regarding the framework. My
+contact information is listed on my GitHub profile at
+https://github.com/ahamlinman.
+
 ## License
 
-The gem is available under the terms of the [MIT
+Peribot is available under the terms of the [MIT
 License](http://opensource.org/licenses/MIT).
