@@ -124,6 +124,14 @@ describe Peribot::Service do
           instance.accept(bad_msg).wait
         end
 
+        it 'passes the command to the handler as a string' do
+          expect(postprocessor).to receive(:accept)
+            .with(hash_including(command: 'test'))
+
+          instance = subclass.new bot, postprocessor
+          instance.accept(message).wait
+        end
+
         it 'passes the argument to the handler' do
           expect(postprocessor).to receive(:accept)
             .with(hash_including(arguments: 'this'))
