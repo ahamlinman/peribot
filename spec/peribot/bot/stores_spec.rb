@@ -25,8 +25,7 @@ describe Peribot::Bot::Stores do
 
     context 'without a filename in the environment' do
       it 'uses the peribot.pstore file in the working directory' do
-        expect(instance.store_file).to eq(
-          File.expand_path('peribot.pstore'))
+        expect(instance.store_file).to eq(File.expand_path('peribot.pstore'))
       end
     end
   end

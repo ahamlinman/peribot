@@ -2,6 +2,11 @@ Style/Documentation:
   Exclude:
     - 'lib/peribot/version.rb'
 
+Style/MethodMissing:
+  Exclude:
+    # Allow the block hash builder not to fall back on 'super'
+    - 'lib/peribot/util/block_hash_builder.rb'
+
 Style/SignalException:
   EnforcedStyle: only_raise
 

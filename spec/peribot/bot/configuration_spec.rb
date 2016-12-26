@@ -53,7 +53,8 @@ describe Peribot::Bot::Configuration do
 
       it 'raises an error' do
         expect { instance.config }.to raise_error(
-          'Could not find configuration')
+          'Could not find configuration'
+        )
       end
     end
   end
