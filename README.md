@@ -17,19 +17,20 @@ a GroupMe bot is as simple as running a Ruby script. Thanks to push
 notification support, there's no need to run a web server and manage callback
 URLs.
 
-## Development Status
+## Development and Usage Status
 
-As of version 0.8, I consider Peribot to be of more-or-less release candidate
-quality, and I am not currently planning any major breaking changes to the
-framework. That being said, it is not widely tested or deployed outside of two
-bots that I personally operate, and breaking changes may still be possible in
-the future.
+Peribot is actively maintained as of 2016-12-26. However, to my knowledge, it is
+not tested or deployed outside of two bots that I personally operate. It is
+mostly on GitHub to make my own consumption easier. I will probably move it to a
+public repository on my personal GitLab instance in the future.
 
-In the event that breaking changes are made to Peribot, I use a form of semantic
-versioning to help reduce their impact. As the `MAJOR` version of Peribot is
-currently 0, I typically increment the `MINOR` version on breaking changes and
-the `PATCH` version on new features. When maintaining a bot, a version specifier
-such as `~> 0.8.0` in your Gemfile is recommended.
+I am not actively planning major architectural changes to Peribot. The overall
+interface should remain somewhat stable.  In the event that breaking changes are
+made, I use a form of semantic versioning to help reduce their impact. As the
+`MAJOR` version of Peribot is currently 0, I typically increment the `MINOR`
+version on breaking changes and the `PATCH` version on new features. When
+maintaining a bot, a version specifier such as `~> 0.8.0` in your Gemfile is
+recommended.
 
 ## Documentation
 
@@ -39,8 +40,9 @@ may be a good start toward understanding Peribot. I have also made several
 resources available on the [Peribot
 wiki](https://github.com/ahamlinman/peribot/wiki), including the [Zero to
 Peribot](https://github.com/ahamlinman/peribot/wiki/Zero-to-Peribot) tutorial
-(which is designed to help you set up a basic bot with Peribot). I plan on
-creating additional guides in the future. Stay tuned!
+(which is designed to help you set up a basic bot with Peribot).
+
+Additional guides may be created in the future.
 
 ## Contributing
 
