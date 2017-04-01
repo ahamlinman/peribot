@@ -22,6 +22,35 @@ describe Peribot::Processor do
     task.new(bot).process({})
   end
 
+  describe '.call' do
+    it 'runs the processor' do
+      task = Class.new(Peribot::Processor) do
+        def process(message)
+          bot.log 'test'
+          message
+        end
+      end
+
+      expect(bot).to receive(:log).with('test')
+
+      acceptor = double('acceptor')
+      expect(acceptor).to receive(:call).with(message: 'hi')
+
+      task.call(bot, { message: 'hi' }, acceptor)
+    end
+
+    it 'logs processor failures' do
+      task = Class.new(Peribot::Processor) do
+        def process(*)
+          raise 'sample error'
+        end
+      end
+
+      expect(bot).to receive(:log).with(/Error in/)
+      task.call(bot, {}, double)
+    end
+  end
+
   describe '#process' do
     it 'fails when not implemented' do
       msg = 'process method not implemented in Peribot::Processor'

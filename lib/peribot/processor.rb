@@ -19,6 +19,27 @@ module Peribot
   #   end
   class Processor
     class << self
+      include ErrorHelpers
+
+      # Required for ErrorHelpers, unfortunately.
+      def bot; end
+
+      # Allow Peribot::Processor to support the Peribot 0.9.x processor
+      # specification. This is an updated vision of "processors" in Peribot
+      # that allows for vastly improved flexibility.
+      def call(bot, message, acceptor)
+        this = new bot
+
+        begin
+          result = this.process message
+        rescue => e
+          log_failure error: e, message: message, logger: bot.method(:log)
+        end
+
+        return unless result
+        acceptor.call result
+      end
+
       # Throw an error stating that this Processor class does not give a proper
       # .register_into implementation. It is recommended that subclasses of
       # Peribot::Processor define a class-level .register_into method so that
