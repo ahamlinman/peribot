@@ -1,10 +1,15 @@
+Metrics/ClassLength:
+  Exclude:
+    # Allow Peribot::Service to be complex. Perhaps it can be redesigned later.
+    - 'lib/peribot/service.rb'
+
 Style/Documentation:
   Exclude:
     - 'lib/peribot/version.rb'
 
 Style/MethodMissing:
   Exclude:
-    # Allow the block hash builder not to fall back on 'super'
+    # Allow the block hash builder not to fall back on 'super'.
     - 'lib/peribot/util/block_hash_builder.rb'
 
 Style/SignalException:

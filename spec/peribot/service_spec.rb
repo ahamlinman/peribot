@@ -1,8 +1,18 @@
 require 'spec_helper'
 
 describe Peribot::Service do
+  let(:base) { Peribot::Service }
+  let(:message) do
+    { service: :msgr, group: 'msgr/1234', text: '#test this' }.freeze
+  end
+  let(:reply) do
+    { service: :msgr, group: 'msgr/1234', text: 'Success!' }
+  end
+  let(:bot) { instance_double(Peribot::Bot) }
+  let(:postprocessor) { instance_double(Peribot::ProcessorChain) }
+
   it 'supports message handlers in subclasses' do
-    subclass = Class.new(Peribot::Service) do
+    subclass = Class.new(base) do
       def test(**); end
       on_message :test
     end
@@ -11,7 +21,7 @@ describe Peribot::Service do
   end
 
   it 'supports command handlers in subclasses' do
-    subclass = Class.new(Peribot::Service) do
+    subclass = Class.new(base) do
       def test(**); end
       on_command :cmd, :test
     end
@@ -20,7 +30,7 @@ describe Peribot::Service do
   end
 
   it 'supports listen handlers in subclasses' do
-    subclass = Class.new(Peribot::Service) do
+    subclass = Class.new(base) do
       def test(**); end
       on_hear(/match/, :test)
     end
@@ -29,28 +39,30 @@ describe Peribot::Service do
   end
 
   it 'registers itself into bot instances properly' do
-    subclass = Class.new(Peribot::Service)
-    bot = instance_double(Peribot::Bot)
-
+    subclass = Class.new(base)
     expect(bot).to receive(:register).with(subclass)
     subclass.register_into bot
   end
 
-  describe '#accept' do
-    let(:base) { Peribot::Service }
-    let(:message) do
-      {
-        service: :msgr,
-        group: 'msgr/1234',
-        text: '#test this'
-      }.freeze
+  it 'supports a call method' do
+    subclass = Class.new(base) do
+      def test_handler(message:, **)
+        {
+          service: message[:service],
+          group: message[:group],
+          text: 'Success!'
+        }
+      end
+      on_message :test_handler
     end
-    let(:reply) do
-      { service: :msgr, group: 'msgr/1234', text: 'Success!' }
-    end
-    let(:bot) { instance_double(Peribot::Bot) }
-    let(:postprocessor) { instance_double(Peribot::ProcessorChain) }
 
+    acceptor = double('acceptor')
+    expect(acceptor).to receive(:call).with(hash_including(reply))
+
+    subclass.call(bot, message, acceptor).wait
+  end
+
+  describe '#accept' do
     it 'returns a promise' do
       subclass = Class.new(base)
       instance = subclass.new bot, postprocessor

@@ -1,6 +1,20 @@
 require 'concurrent'
 
 module Peribot
+  # A class that acts as a legacy Peribot acceptor, and forwards "accept" calls
+  # to the "call" method of the given receiver. This allows for easier use of
+  # Peribot 0.9.x acceptors in Peribot::Service, until the legacy acceptor
+  # implementation can be fully deprecated.
+  class AcceptorTranslator
+    def initialize(acceptor)
+      @acceptor = acceptor
+    end
+
+    def accept(message)
+      @acceptor.call message
+    end
+  end
+
   # A base class for services in Peribot. Services provide most of Peribot's
   # serious functionality by processing messages received from groups and
   # creating replies to be sent in return. Messages are immutable (frozen)
@@ -43,6 +57,14 @@ module Peribot
     include ErrorHelpers
 
     class << self
+      # Allow Peribot::Service to support the Peribot 0.9.x processor
+      # specification. This is an updated vision of "processors" in Peribot
+      # that allows for vastly improved flexibility.
+      def call(bot, message, acceptor)
+        this = new bot, AcceptorTranslator.new(acceptor)
+        this.accept message
+      end
+
       # Ensure that handler lists get set in subclasses, and allow them to be
       # accessible.
       def inherited(subclass)
