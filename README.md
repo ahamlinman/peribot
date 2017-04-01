@@ -19,18 +19,19 @@ URLs.
 
 ## Development and Usage Status
 
-Peribot is actively maintained as of 2016-12-26. However, to my knowledge, it is
-not tested or deployed outside of two bots that I personally operate. It is
-mostly on GitHub to make my own consumption easier. I will probably move it to a
-public repository on my personal GitLab instance in the future.
+Peribot is actively maintained as of 2017-03-31. However, to my knowledge, it
+is not tested or deployed outside of two bots that I personally operate. It is
+mostly on GitHub to make my own consumption easier. I may move it to a public
+repository on my personal GitLab instance in the future.
 
-I am not actively planning major architectural changes to Peribot. The overall
-interface should remain somewhat stable.  In the event that breaking changes are
-made, I use a form of semantic versioning to help reduce their impact. As the
-`MAJOR` version of Peribot is currently 0, I typically increment the `MINOR`
-version on breaking changes and the `PATCH` version on new features. When
-maintaining a bot, a version specifier such as `~> 0.8.0` in your Gemfile is
-recommended.
+The overall interface should hopefully remain somewhat stable. That said,
+architectural and interface changes may still be made when they improve the
+state of things (there is a *ton* of room for that). In the event that breaking
+changes are required, I use a form of semantic versioning to help reduce their
+impact. As the `MAJOR` version of Peribot is currently 0, I typically increment
+the `MINOR` version on breaking changes and the `PATCH` version on new
+features.  When maintaining a bot, a version specifier such as `~> 0.8.0` in
+your Gemfile is recommended.
 
 ## Documentation
 
