@@ -117,7 +117,7 @@ module Peribot
     # @param message [Hash] The message to process
     # @return [Concurrent::IVar] An IVar that can be waited on if necessary
     def accept(message)
-      unless [:service, :group, :text].all? { |k| message[k] }
+      unless [:text, :service, :group].all? { |k| message[k] }
         raise 'invalid message (must have text, service, and group)'
       end
 
