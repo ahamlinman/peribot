@@ -185,7 +185,7 @@ module Peribot
         safe_cmd = Regexp.quote(cmd)
         next prom unless text =~ /\A##{safe_cmd}(?: |\z)/
 
-        args = text.split[1..-1].join(' ')
+        args = text.split.drop(1).join(' ')
         args = nil if args.empty?
 
         prom.then(&handler_proc(handler, command: cmd, arguments: args,
@@ -252,7 +252,7 @@ module Peribot
         rescue => error
           log_failure(
             error: error,
-            message: args[:message],
+            message: args.fetch(:message),
             logger: bot.public_method(:log)
           )
           msgs
