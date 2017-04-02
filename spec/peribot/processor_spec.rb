@@ -39,6 +39,21 @@ describe Peribot::Processor do
       task.call(bot, { message: 'hi' }, &acceptor.method(:call)).wait
     end
 
+    it 'normalizes and handles advanced return formats' do
+      message = { service: :x, group: 'x/1' }
+      task = Class.new(Peribot::Processor) do
+        def process(_)
+          [nil, 'It works!']
+        end
+      end
+
+      acceptor = double('acceptor')
+      expect(acceptor).to receive(:call).with(service: :x, group: 'x/1',
+                                              text: 'It works!')
+
+      task.call(bot, message.merge(text: 'hi'), &acceptor.method(:call)).wait
+    end
+
     it 'logs processor failures' do
       task = Class.new(Peribot::Processor) do
         def process(*)
@@ -47,7 +62,7 @@ describe Peribot::Processor do
       end
 
       expect(bot).to receive(:log).with(/Error in/)
-      task.call(bot, {}) {}.wait
+      task.call(bot, {}) { raise 'Should not have output' }.wait
     end
   end
 

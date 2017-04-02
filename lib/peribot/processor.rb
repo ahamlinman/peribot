@@ -26,7 +26,7 @@ module Peribot
       # Allow Peribot::Processor to support the Peribot 0.9.x processor
       # specification. This is an updated vision of "processors" in Peribot
       # that allows for vastly improved flexibility.
-      def call(bot, message)
+      def call(bot, message, &acceptor)
         this = new bot
 
         Concurrent::Future.execute do
@@ -36,7 +36,7 @@ module Peribot
             log_failure error: e, message: message, logger: bot.method(:log)
           end
 
-          yield result if result
+          Util.process_replies [result], message, &acceptor
         end
       end
 
