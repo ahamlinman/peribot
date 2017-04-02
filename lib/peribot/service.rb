@@ -131,7 +131,7 @@ module Peribot
 
       promise = Concurrent::Promise.fulfill []
       promise = chain_handlers promise, message
-      promise.then { |msgs| Util.process_replies msgs, message, &@acceptor }
+      promise.then { |msgs| Util.process_replies msgs, message, &acceptor }
     end
 
     private
