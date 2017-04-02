@@ -24,12 +24,14 @@ module Peribot
     # @param message The message to process
     # @yield Messages output by processors in the group
     def call(bot, message, &acceptor)
-      @processors.each do |p|
-        begin
-          p.call(bot, message, &acceptor)
-        rescue => e
-          log_failure error: e, message: message,
-                      logger: bot.public_method(:log)
+      @processors.map do |p|
+        Concurrent::Future.execute do
+          begin
+            p.call(bot, message, &acceptor)
+          rescue => e
+            log_failure error: e, message: message,
+                        logger: bot.public_method(:log)
+          end
         end
       end
     end

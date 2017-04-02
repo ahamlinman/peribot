@@ -11,7 +11,9 @@ describe Peribot::ProcessorGroup do
         end
 
         instance = described_class.new([task])
-        expect { instance.call(bot, {}) {} }.to output("{}\n").to_stdout
+        expect { instance.call(bot, {}) {}.each(&:wait) }.to(
+          output("{}\n").to_stdout
+        )
       end
     end
 
@@ -24,7 +26,7 @@ describe Peribot::ProcessorGroup do
         instance = described_class.new([task])
 
         expect(bot).to receive(:log).with('test')
-        instance.call(bot, {}) {}
+        instance.call(bot, {}) {}.each(&:wait)
       end
     end
 
@@ -45,7 +47,7 @@ describe Peribot::ProcessorGroup do
 
         expect(bot).to receive(:log).with(/#{Regexp.quote(log_msg)}/)
         instance = described_class.new([task])
-        instance.call(bot, message) {}
+        instance.call(bot, message) {}.each(&:wait)
       end
     end
   end
