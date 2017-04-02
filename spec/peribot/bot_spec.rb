@@ -64,4 +64,35 @@ describe Peribot::Bot do
       expect(instance.caches['test']['key']).to eq('value')
     end
   end
+
+  describe '#accept' do
+    def get_processor(phase)
+      proc do |_, message, &acceptor|
+        acceptor.call message.merge(
+          count: message[:count] + 1,
+          phase => message[:count]
+        )
+      end
+    end
+
+    it 'sends messages through each processing phase in order' do
+      instance.preprocessor.register get_processor(:preprocessor)
+      instance.register get_processor(:service)
+      instance.postprocessor.register get_processor(:postprocessor)
+
+      result = {}
+      instance.sender.register(proc do |_, message|
+        result = message.merge(sender: message[:count])
+      end)
+
+      instance.accept(count: 0)
+
+      expect { result }.to eventually include(
+        preprocessor: 0,
+        service: 1,
+        postprocessor: 2,
+        sender: 3
+      )
+    end
+  end
 end
