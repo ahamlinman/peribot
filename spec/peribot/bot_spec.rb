@@ -101,6 +101,16 @@ describe Peribot::Bot do
       )
     end
 
+    it 'passes itself into processors' do
+      passed_bot = Concurrent::IVar.new
+      instance.sender.register(proc do |bot, _|
+        passed_bot.set bot
+      end)
+
+      instance.accept({}, stage: :sender)
+      expect(passed_bot.value).to equal(instance)
+    end
+
     context 'with an invalid stage' do
       it 'raises an error' do
         expect { instance.accept({}, stage: :bad) }.to raise_error KeyError
