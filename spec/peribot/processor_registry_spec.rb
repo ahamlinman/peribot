@@ -24,7 +24,7 @@ describe Peribot::ProcessorRegistry do
       registry = described_class.new
       procs.each(&registry.method(:register))
 
-      expect(registry.list).to include(*procs)
+      expect(registry.list).to eq(procs)
     end
   end
 end
