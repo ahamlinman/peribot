@@ -1,3 +1,10 @@
+RSpec.configure do |config|
+  config.around(:each) { |example| Timeout.timeout(1, &example) }
+end
+
+require 'rspec/eventually'
+Rspec::Eventually.timeout = 0.5
+
 begin
   require 'simplecov'
   SimpleCov.start do
@@ -6,8 +13,6 @@ begin
 rescue LoadError
   $stderr.puts 'NOTE: SimpleCov is not installed'
 end
-
-require 'rspec/eventually'
 
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'peribot'
