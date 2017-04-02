@@ -47,13 +47,13 @@ module Peribot
     # called with one.
     #
     # @param service [Class] A service that should receive messages
-    def register(service)
-      @registries[:service].register service
+    def register(s)
+      service.register s
     end
 
     # Obtain an array of the services registered with this bot.
     def services
-      @registries[:service].list
+      service.list
     end
 
     # Have the bot make use of some given functionality. This general method is
