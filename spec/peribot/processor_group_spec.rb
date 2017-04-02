@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'concurrent'
 
 describe Peribot::ProcessorGroup do
   let(:bot) { instance_double(Peribot::Bot) }
@@ -14,6 +15,18 @@ describe Peribot::ProcessorGroup do
         expect { instance.call(bot, {}) {}.each(&:wait) }.to(
           output("{}\n").to_stdout
         )
+      end
+    end
+
+    context 'with multiple tasks' do
+      it 'executes all of the tasks' do
+        count = Concurrent::AtomicFixnum.new
+        task = proc { |*| count.increment }
+
+        instance = described_class.new([task, task, task])
+        instance.call(bot, {}) {}.each(&:wait)
+
+        expect(count.value).to eq(3)
       end
     end
 
