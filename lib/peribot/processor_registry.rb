@@ -24,5 +24,6 @@ module Peribot
     def list
       @processors.keys
     end
+    alias tasks list
   end
 end
