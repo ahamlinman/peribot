@@ -91,38 +91,14 @@ module Peribot
     # the preprocessor's #accept method directly.
     #
     # @param message [Hash] The message to process
-    def accept(message)
-      ProcessorChain.new(preprocessor.list).call(self, message) do |output|
-        dispatch_to_services output.freeze
+    def accept(message, stage: STAGES.keys.first)
+      STAGES[stage].new(@registries[stage].list).call(self, message) do |out|
+        remaining = STAGES.keys.drop_while { |s| s != stage }.drop(1)
+        accept(out, stage: remaining.first) unless remaining.empty?
       end
     end
 
     private
-
-    # (private)
-    #
-    # Send a message out to all services, then the postprocessor.
-    def dispatch_to_services(message)
-      ProcessorGroup.new(service.list).call(self, message) do |output|
-        dispatch_to_postprocessors output.freeze
-      end
-    end
-
-    # (private)
-    #
-    # Send a message out to all postprocessors, then the senders.
-    def dispatch_to_postprocessors(message)
-      ProcessorChain.new(postprocessor.list).call(self, message) do |output|
-        dispatch_to_senders output.freeze
-      end
-    end
-
-    # (private)
-    #
-    # Send a message out to all senders, then ignore any output.
-    def dispatch_to_senders(message)
-      ProcessorGroup.new(sender.list).call(self, message) { |*| }
-    end
 
     # (private)
     #
