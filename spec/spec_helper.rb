@@ -2,9 +2,6 @@ RSpec.configure do |config|
   config.around(:each) { |example| Timeout.timeout(1, &example) }
 end
 
-require 'rspec/eventually'
-Rspec::Eventually.timeout = 0.5
-
 begin
   require 'simplecov'
   SimpleCov.start do

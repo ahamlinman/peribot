@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'concurrent'
 
 describe Peribot::Bot do
   let(:instance) { Peribot::Bot.new }
@@ -80,15 +81,19 @@ describe Peribot::Bot do
       instance.register get_processor(:service)
       instance.postprocessor.register get_processor(:postprocessor)
 
+      done = Concurrent::Event.new
       result = {}
       instance.sender.register(proc do |_, message, &acceptor|
         result = message.merge(sender: message[:count])
         acceptor.call result
+        done.set
       end)
 
       instance.accept(count: 0)
+      done.wait
 
-      expect { result }.to eventually include(
+      expect(result).to eq(
+        count: 3,
         preprocessor: 0,
         service: 1,
         postprocessor: 2,
