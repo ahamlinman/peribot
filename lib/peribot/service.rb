@@ -120,7 +120,11 @@ module Peribot
     # Note that in a future version of Peribot, services will no longer be
     # initialized with an acceptor. They will only be initialized with a bot,
     # and the acceptor will be given to the {#accept} method. The current
-    # initialization strategy is maintained for backwards compatibility.
+    # initialization strategy is maintained for backwards compatibility with
+    # services that depend on the arity of this constructor. It is suggested
+    # that extensions of this class that implement constructors use `def
+    # initialize(*)` to ignore all arguments given to them, and call `super` as
+    # their first action. Services can use {#bot} to obtain the bot instance.
     #
     # @param bot [Peribot] A Peribot object
     # @param acceptor [Proc] A Peribot acceptor that will receive messages
