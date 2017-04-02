@@ -11,6 +11,13 @@ module Peribot
     include Configuration
     include Stores
 
+    STAGES = {
+      preprocessor: ProcessorChain,
+      service: ProcessorGroup,
+      postprocessor: ProcessorChain,
+      sender: ProcessorGroup
+    }.freeze
+
     # Create a new Peribot instance and set up its basic configuration options.
     # All bot instances require a configuration file (containing instance
     # configuration options) and a store file (to save information that should
@@ -30,11 +37,9 @@ module Peribot
         map[key] = Peribot::Util::KeyValueAtom.new
       end
 
-      @services = []
-
       setup_registries
     end
-    attr_reader :preprocessor, :postprocessor, :sender, :services, :caches
+    attr_reader :caches
 
     # Register a service with this Peribot instance. It will be instantiated
     # and used to process each message that this bot receives. Services will
@@ -43,7 +48,12 @@ module Peribot
     #
     # @param service [Class] A service that should receive messages
     def register(service)
-      services << service unless services.include? service
+      @registries[:service].register service
+    end
+
+    # Obtain an array of the services registered with this bot.
+    def services
+      @registries[:service].list
     end
 
     # Have the bot make use of some given functionality. This general method is
@@ -93,10 +103,8 @@ module Peribot
     #
     # Send a message out to all services, then the postprocessor.
     def dispatch_to_services(message)
-      services.each do |service|
-        service.call(self, message) do |output|
-          dispatch_to_postprocessors output.freeze
-        end
+      ProcessorGroup.new(service.list).call(self, message) do |output|
+        dispatch_to_postprocessors output.freeze
       end
     end
 
@@ -120,9 +128,12 @@ module Peribot
     #
     # Set up the registries for preprocessors, postprocessors, and senders.
     def setup_registries
-      @preprocessor = ProcessorRegistry.new
-      @postprocessor = ProcessorRegistry.new
-      @sender = ProcessorRegistry.new
+      @registries = {}
+
+      STAGES.keys.each do |stage|
+        @registries[stage] = ProcessorRegistry.new
+        define_singleton_method(stage) { @registries[stage] }
+      end
     end
   end
 end
