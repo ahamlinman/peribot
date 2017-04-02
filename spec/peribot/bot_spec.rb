@@ -1,63 +1,21 @@
 require 'spec_helper'
+require 'concurrent'
 
 describe Peribot::Bot do
   let(:instance) { Peribot::Bot.new }
-
-  let(:task) do
-    Class.new(Peribot::Middleware::Task) do
-      def process(message)
-        puts message.inspect
-      end
-    end
-  end
-
   let(:service) { Class.new(Peribot::Service) }
   let(:service_instance) { instance_double(Peribot::Service) }
 
-  # This ensures that any processor chains created by the bot are actually
-  # initialized with the bot itself (which is pretty much the whole idea of
-  # initializing those chains with a bot).
-  before(:each) do
-    allow(Peribot::ProcessorChain).to receive(:new)
-      .with(instance_of(Peribot::Bot)).and_call_original
+  it 'allows preprocessor registration' do
+    expect(instance.preprocessor).to respond_to(:register)
   end
 
-  it 'has a preprocessor' do
-    expect(instance.preprocessor).to respond_to(:accept)
+  it 'allows postprocessor registration' do
+    expect(instance.postprocessor).to respond_to(:register)
   end
 
-  it 'has a postprocessor' do
-    expect(instance.postprocessor).to respond_to(:accept)
-  end
-
-  it 'has a sender' do
-    expect(instance.sender).to respond_to(:accept)
-  end
-
-  it 'initializes services with itself and the postprocessor' do
-    instance.register service
-
-    expect(service).to receive(:new)
-      .with(instance_of(Peribot::Bot), instance_of(Peribot::ProcessorChain))
-      .and_return(service_instance)
-    allow(service_instance).to receive(:accept)
-
-    instance.accept({}).wait
-  end
-
-  context 'with an explicit store_file parameter' do
-    let(:instance) { Peribot::Bot.new(store_file: '') }
-
-    it 'sets the store file' do
-      expect(instance.store_file).to eq('')
-    end
-  end
-
-  describe '#accept' do
-    it 'sends messages to the preprocessor' do
-      expect(instance.preprocessor).to receive(:accept).with({})
-      instance.accept({})
-    end
+  it 'allows sender registration' do
+    expect(instance.sender).to respond_to(:register)
   end
 
   describe '#register' do
@@ -108,48 +66,55 @@ describe Peribot::Bot do
     end
   end
 
-  describe '#preprocessor' do
-    let(:service) do
-      Class.new(Peribot::Service) do
-        def handle(message:)
-          puts message.inspect
-          puts message.frozen?
-        end
-        on_message :handle
+  describe '#accept' do
+    def get_processor(phase)
+      proc do |_, message, &acceptor|
+        acceptor.call message.merge(
+          count: message[:count] + 1,
+          phase => message[:count]
+        )
       end
     end
 
-    let(:msg) do
-      { service: :groupme, group: 'groupme/1', text: 'test' }
-    end
-    let(:result) { instance.preprocessor.accept(msg).value.each(&:wait) }
+    it 'sends messages through each processing phase in order' do
+      instance.preprocessor.register get_processor(:preprocessor)
+      instance.register get_processor(:service)
+      instance.postprocessor.register get_processor(:postprocessor)
 
-    it 'forwards frozen messages to services after processing' do
-      instance.register service
-      expect { result }.to output("#{msg}\ntrue\n").to_stdout
-    end
-  end
+      done = Concurrent::Event.new
+      result = {}
+      instance.sender.register(proc do |_, message, &acceptor|
+        result = message.merge(sender: message[:count])
+        acceptor.call result
+        done.set
+      end)
 
-  describe '#postprocessor' do
-    it 'forwards messages to senders after postprocessing' do
-      expect(instance.sender).to receive(:accept).with({})
-      instance.postprocessor.accept({}).wait
-    end
-  end
+      instance.accept(count: 0)
+      done.wait
 
-  describe '#sender' do
-    let(:test_sender) do
-      Class.new(Peribot::Processor) do
-        def process(message)
-          puts message.inspect
-        end
+      expect(result).to eq(
+        count: 3,
+        preprocessor: 0,
+        service: 1,
+        postprocessor: 2,
+        sender: 3
+      )
+    end
+
+    it 'passes itself into processors' do
+      passed_bot = Concurrent::IVar.new
+      instance.sender.register(proc do |bot, _|
+        passed_bot.set bot
+      end)
+
+      instance.accept({}, stage: :sender)
+      expect(passed_bot.value).to equal(instance)
+    end
+
+    context 'with an invalid stage' do
+      it 'raises an error' do
+        expect { instance.accept({}, stage: :bad) }.to raise_error KeyError
       end
-    end
-
-    it 'can register senders and give them messages' do
-      instance.sender.register test_sender
-      expect { instance.sender.accept({}).each(&:wait) }
-        .to output("{}\n").to_stdout
     end
   end
 end

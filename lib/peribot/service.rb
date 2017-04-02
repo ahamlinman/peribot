@@ -1,19 +1,30 @@
 require 'concurrent'
 
 module Peribot
-  # A base class for services in Peribot. Services provide most of Peribot's
-  # serious functionality by processing messages received from groups and
-  # creating replies to be sent in return. Messages are immutable (frozen)
-  # hashes containing, at minimum, values for 'group_id' and 'text'.
+  # Service represents a powerful and potentially complex message processing
+  # task in Peribot. After being initialized with a {Peribot::Bot}, it will
+  # receive a message and execute a set of handler methods based on its
+  # content.
   #
-  # While any class that implements {#accept} properly can act as a Peribot
-  # service, this class provides convenient functionality for writing services,
-  # including class methods to register methods as message handlers and the
-  # ability to respond to messages by simply returning a string.
+  # Handler methods provide a nice, synchronous interface on top of Peribot's
+  # totally async message processing flow. Additionally, they allow you to
+  # focus on your service logic rather than filtering messages to determine
+  # what actions you need to perform. Handlers are only executed when
+  # necessary, and can return nil, a string, a fully-formatted Peribot message
+  # hash, or an array consisting of any combination of these. They may also
+  # raise an exception, which will be logged.
   #
-  # There are three types of handlers in this class: message handlers, command
-  # handlers, and listen handlers. See the documentation for {on_message},
-  # {on_command}, and {on_listen} for more about each handler type.
+  # While this class is mostly designed for complex services, it may also be
+  # used for complex preprocessing, postprocessing, or sending logic. To do
+  # this, you will wish to override the class-level register_into method to
+  # insert your service into the appropriate message processing stage.
+  #
+  # There are three types of handlers provided: message handlers, command
+  # handlers, and listen handlers. See the documentation for {.on_message},
+  # {.on_command}, and {.on_listen} for more about each handler type.
+  #
+  # Note that within an instance of this class, the Peribot instance used to
+  # initialize it will be available through the {#bot} accessor method.
   #
   # @example A message handler
   #   def my_handler(message:)
@@ -43,6 +54,12 @@ module Peribot
     include ErrorHelpers
 
     class << self
+      # Run this service by initializing it and executing all handlers.
+      def call(bot, message, &acceptor)
+        this = new bot, acceptor
+        this.accept message
+      end
+
       # Ensure that handler lists get set in subclasses, and allow them to be
       # accessible.
       def inherited(subclass)
@@ -94,36 +111,42 @@ module Peribot
       #
       # @param bot [Peribot::Bot] A Peribot instance
       def register_into(bot)
-        bot.register self
+        bot.service.register self
       end
     end
 
-    # Initialize a new service instance with a Peribot instance (that may be
-    # used for configuration and persistent storage) and an acceptor (an
-    # object that can receive :accept with completed messages to send).
+    # Initialize a new service instance with a Peribot instance and acceptor.
+    #
+    # Note that in a future version of Peribot, services will no longer be
+    # initialized with an acceptor. They will only be initialized with a bot,
+    # and the acceptor will be given to the {#accept} method. The current
+    # initialization strategy is maintained for backwards compatibility with
+    # services that depend on the arity of this constructor. It is suggested
+    # that extensions of this class that implement constructors use `def
+    # initialize(*)` to ignore all arguments given to them, and call `super` as
+    # their first action. Services can use {#bot} to obtain the bot instance.
     #
     # @param bot [Peribot] A Peribot object
-    # @param acceptor A class implementing #accept that will receive replies
+    # @param acceptor [Proc] A Peribot acceptor that will receive messages
     def initialize(bot, acceptor)
       @bot = bot
       @acceptor = acceptor
     end
 
-    # Begin processing a new message. This will cause each appropriate
-    # handler method to be called. Any messages that handler methods wish to
-    # send will be sent to the postprocessing chain after processing by the
-    # service is completed.
+    # Begin processing a new message. This will cause each appropriate handler
+    # method to be called. Any resulting messages will be sent to the acceptor
+    # after all processing by the service is completed.
     #
     # @param message [Hash] The message to process
-    # @return [Concurrent::IVar] An IVar that can be waited on if necessary
+    # @return [Concurrent::Promise] A promise that can be waited on if necessary
     def accept(message)
-      unless [:service, :group, :text].all? { |k| message[k] }
+      unless [:text, :service, :group].all? { |k| message[k] }
         raise 'invalid message (must have text, service, and group)'
       end
 
       promise = Concurrent::Promise.fulfill []
       promise = chain_handlers promise, message
-      promise.then { |msgs| end_action msgs, message }
+      promise.then { |msgs| Util.process_replies msgs, message, &acceptor }
     end
 
     private
@@ -166,7 +189,7 @@ module Peribot
         safe_cmd = Regexp.quote(cmd)
         next prom unless text =~ /\A##{safe_cmd}(?: |\z)/
 
-        args = text.split[1..-1].join(' ')
+        args = text.split.drop(1).join(' ')
         args = nil if args.empty?
 
         prom.then(&handler_proc(handler, command: cmd, arguments: args,
@@ -231,40 +254,13 @@ module Peribot
         begin
           msgs << __send__(handler, **args)
         rescue => error
-          log_failure error: error, message: args[:message]
+          log_failure(
+            error: error,
+            message: args.fetch(:message),
+            logger: bot.public_method(:log)
+          )
           msgs
         end
-      end
-    end
-
-    # (private)
-    #
-    # Send any messages created by handlers to the acceptor.
-    #
-    # @param replies [Array] Replies from handlers in this service
-    # @param original [Hash] The message that we are replying to
-    def end_action(replies, original)
-      msgs = replies.flatten.compact
-      msgs = convert_strings_to_replies msgs, original
-      msgs.each { |msg| acceptor.accept msg }
-    end
-
-    # (private)
-    #
-    # Normalize an array containing mixed strings and messages so that it
-    # only contains message hashes.
-    #
-    # @param replies [Array] An array of replies to a message
-    # @param original [Hash] The message that we are replying to
-    # @return [Array<Hash>] A normalized array of replies
-    def convert_strings_to_replies(replies, original)
-      replies.map do |reply|
-        next reply unless reply.instance_of? String
-        {
-          service: original[:service],
-          group: original[:group],
-          text: reply
-        }
       end
     end
   end

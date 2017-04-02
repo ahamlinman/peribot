@@ -3,6 +3,7 @@ module Peribot
     # Build a Hash by executing a block. This allows a DSL-style
     # configuration for bots.
     class BlockHashBuilder
+      # Construct a hash from the configuration in the provided block.
       def self.build(&block)
         hb = new
         hb.instance_eval(&block)

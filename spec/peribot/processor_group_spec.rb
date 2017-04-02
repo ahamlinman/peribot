@@ -1,61 +1,46 @@
 require 'spec_helper'
+require 'concurrent'
 
 describe Peribot::ProcessorGroup do
   let(:bot) { instance_double(Peribot::Bot) }
-  let(:instance) { Peribot::ProcessorGroup.new bot }
-
-  it 'contains an accessible list of tasks' do
-    expect(instance).to respond_to(:tasks)
-  end
-
-  describe '#register' do
-    let(:task) { Class.new(Peribot::Processor) }
-
-    it 'adds a task to the task list' do
-      instance.register task
-
-      expect(instance.tasks).to include(task)
-    end
-
-    it 'does not add tasks more than once' do
-      instance.register task
-      instance.register task
-
-      expect(instance.tasks.count(task)).to eq(1)
-    end
-  end
 
   describe '#accept' do
-    it 'returns an array of Concurrent::IVars' do
-      promises = instance.accept('test' => true)
-      result = promises.all? { |p| p.is_a? Concurrent::IVar }
-      expect(result).to be true
-    end
-
     context 'with one task' do
       it 'executes the task' do
-        task = Class.new(Peribot::Processor) do
-          def process(msg)
-            puts msg.inspect
-          end
+        task = proc do |_, message|
+          puts message.inspect
         end
-        instance.register task
 
-        expect { instance.accept({}).each(&:wait) }.to output("{}\n").to_stdout
+        instance = described_class.new([task])
+        expect { instance.call(bot, {}) {}.each(&:wait) }.to(
+          output("{}\n").to_stdout
+        )
+      end
+    end
+
+    context 'with multiple tasks' do
+      it 'executes all of the tasks' do
+        count = Concurrent::AtomicFixnum.new
+        acceptor = proc { |*| count.increment }
+        task = proc { |_, msg, &inc| inc.call msg }
+
+        instance = described_class.new([task, task, task])
+        instance.call(bot, {}, &acceptor).each(&:wait)
+
+        expect(count.value).to eq(3)
       end
     end
 
     context 'with a task using the bot instance' do
       it 'provides proper access to the bot' do
-        task = Class.new(Peribot::Processor) do
-          def process(*)
-            bot.log 'test'
-          end
+        task = proc do |bot, _|
+          bot.log 'test'
         end
-        instance.register task
+
+        instance = described_class.new([task])
 
         expect(bot).to receive(:log).with('test')
-        instance.accept({}).each(&:wait)
+        instance.call(bot, {}) {}.each(&:wait)
       end
     end
 
@@ -63,12 +48,7 @@ describe Peribot::ProcessorGroup do
       let(:message) { { test: true } }
 
       it 'outputs a log via the bot' do
-        task = Class.new(Peribot::Processor) do
-          def process(*)
-            raise 'just testing'
-          end
-        end
-        instance.register task
+        task = proc { |*| raise 'just testing' }
 
         # Only part of the log will be matched. We just want to ensure that the
         # right message gets output and that the exception isn't forgotten.
@@ -80,7 +60,8 @@ describe Peribot::ProcessorGroup do
         log_msg.strip!
 
         expect(bot).to receive(:log).with(/#{Regexp.quote(log_msg)}/)
-        instance.accept(message).each(&:wait)
+        instance = described_class.new([task])
+        instance.call(bot, message) {}.each(&:wait)
       end
     end
   end

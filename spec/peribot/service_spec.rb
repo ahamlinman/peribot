@@ -1,8 +1,17 @@
 require 'spec_helper'
 
 describe Peribot::Service do
+  let(:base) { Peribot::Service }
+  let(:message) do
+    { service: :msgr, group: 'msgr/1234', text: '#test this' }.freeze
+  end
+  let(:reply) do
+    { service: :msgr, group: 'msgr/1234', text: 'Success!' }
+  end
+  let(:bot) { instance_double(Peribot::Bot) }
+
   it 'supports message handlers in subclasses' do
-    subclass = Class.new(Peribot::Service) do
+    subclass = Class.new(base) do
       def test(**); end
       on_message :test
     end
@@ -11,7 +20,7 @@ describe Peribot::Service do
   end
 
   it 'supports command handlers in subclasses' do
-    subclass = Class.new(Peribot::Service) do
+    subclass = Class.new(base) do
       def test(**); end
       on_command :cmd, :test
     end
@@ -20,7 +29,7 @@ describe Peribot::Service do
   end
 
   it 'supports listen handlers in subclasses' do
-    subclass = Class.new(Peribot::Service) do
+    subclass = Class.new(base) do
       def test(**); end
       on_hear(/match/, :test)
     end
@@ -29,33 +38,36 @@ describe Peribot::Service do
   end
 
   it 'registers itself into bot instances properly' do
-    subclass = Class.new(Peribot::Service)
-    bot = instance_double(Peribot::Bot)
-
-    expect(bot).to receive(:register).with(subclass)
+    subclass = Class.new(base)
+    bot = Peribot::Bot.new
     subclass.register_into bot
+    expect(bot.service.list).to include(subclass)
+  end
+
+  it 'supports a call method' do
+    subclass = Class.new(base) do
+      def test_handler(message:, **)
+        {
+          service: message[:service],
+          group: message[:group],
+          text: 'Success!'
+        }
+      end
+      on_message :test_handler
+    end
+
+    acceptor = double('acceptor')
+    expect(acceptor).to receive(:call).with(hash_including(reply))
+
+    subclass.call(bot, message, &acceptor.method(:call)).wait
   end
 
   describe '#accept' do
-    let(:base) { Peribot::Service }
-    let(:message) do
-      {
-        service: :msgr,
-        group: 'msgr/1234',
-        text: '#test this'
-      }.freeze
-    end
-    let(:reply) do
-      { service: :msgr, group: 'msgr/1234', text: 'Success!' }
-    end
-    let(:bot) { instance_double(Peribot::Bot) }
-    let(:postprocessor) { instance_double(Peribot::ProcessorChain) }
-
     it 'returns a promise' do
       subclass = Class.new(base)
-      instance = subclass.new bot, postprocessor
       msg = { service: :msgr, group: 'msgr/1', text: 'test' }
-      expect(instance.accept(msg)).to be_instance_of(Concurrent::Promise)
+      result = subclass.call(bot, msg) {}
+      expect(result).to be_instance_of(Concurrent::Promise)
     end
 
     context 'with a message handler' do
@@ -74,18 +86,15 @@ describe Peribot::Service do
       end
 
       it 'replies to any message' do
-        expect(postprocessor).to receive(:accept).with(hash_including(reply))
-
-        instance = subclass.new bot, postprocessor
-        instance.accept(message).wait
+        result = {}
+        subclass.call(bot, message) { |output| result = output }.wait
+        expect(result).to include(reply)
       end
 
       it 'passes the original message as an argument' do
-        expect(postprocessor).to receive(:accept)
-          .with(hash_including(original: message))
-
-        instance = subclass.new bot, postprocessor
-        instance.accept(message).wait
+        passed = false
+        subclass.call(bot, message) { |o| passed = o.include?(:original) }.wait
+        expect(passed).to be true
       end
     end
 
@@ -108,36 +117,28 @@ describe Peribot::Service do
 
       context 'with a regular command and an argument' do
         it 'replies to messages with the command' do
-          expect(postprocessor).to receive(:accept).with(hash_including(reply))
-
-          instance = subclass.new bot, postprocessor
-          instance.accept(message).wait
+          result = {}
+          subclass.call(bot, message) { |output| result = output }.wait
+          expect(result).to include(reply)
         end
 
         it 'does not reply to messages without the command' do
-          expect(postprocessor).to_not receive(:accept)
-
           bad_msg = message.dup
           bad_msg[:text] = 'Do not process this!'
 
-          instance = subclass.new bot, postprocessor
-          instance.accept(bad_msg).wait
+          subclass.call(bot, bad_msg) { raise 'Should not have output' }.wait
         end
 
         it 'passes the command to the handler as a string' do
-          expect(postprocessor).to receive(:accept)
-            .with(hash_including(command: 'test'))
-
-          instance = subclass.new bot, postprocessor
-          instance.accept(message).wait
+          result = {}
+          subclass.call(bot, message) { |output| result = output }.wait
+          expect(result).to include(command: 'test')
         end
 
         it 'passes the argument to the handler' do
-          expect(postprocessor).to receive(:accept)
-            .with(hash_including(arguments: 'this'))
-
-          instance = subclass.new bot, postprocessor
-          instance.accept(message).wait
+          result = {}
+          subclass.call(bot, message) { |output| result = output }.wait
+          expect(result).to include(arguments: 'this')
         end
       end
 
@@ -151,28 +152,22 @@ describe Peribot::Service do
         end
 
         it 'replies to messages with commands' do
-          expect(postprocessor).to receive(:accept).with(hash_including(reply))
-
-          instance = subclass.new bot, postprocessor
-          instance.accept(message).wait
+          result = {}
+          subclass.call(bot, message) { |output| result = output }.wait
+          expect(result).to include(reply)
         end
 
         it 'does not reply to messages without commands' do
-          expect(postprocessor).to_not receive(:accept)
-
           bad_msg = message.dup
-          bad_msg[:text] = '#my cmd'
+          bad_msg[:text] = 'Do not process this!'
 
-          instance = subclass.new bot, postprocessor
-          instance.accept(bad_msg).wait
+          subclass.call(bot, bad_msg) { raise 'Should not have output' }.wait
         end
 
         it 'passes nil as the argument' do
-          expect(postprocessor).to receive(:accept)
-            .with(hash_including(arguments: nil))
-
-          instance = subclass.new bot, postprocessor
-          instance.accept(message).wait
+          result = {}
+          subclass.call(bot, message) { |output| result = output }.wait
+          expect(result).to include(arguments: nil)
         end
       end
 
@@ -186,11 +181,9 @@ describe Peribot::Service do
         end
 
         it 'passes the full argument to the handler' do
-          expect(postprocessor).to receive(:accept)
-            .with(hash_including(arguments: 'me now'))
-
-          instance = subclass.new bot, postprocessor
-          instance.accept(message).wait
+          result = {}
+          subclass.call(bot, message) { |output| result = output }.wait
+          expect(result).to include(arguments: 'me now')
         end
       end
     end
@@ -211,18 +204,19 @@ describe Peribot::Service do
       end
 
       it 'does not reply when only part of a command matches' do
-        expect(postprocessor).to receive(:accept).once
+        message = { service: :msgs, group: 'msgs/1', text: '#testing' }
+        count = 0
+        subclass.call(bot, message) { |*| count += 1 }.wait
 
-        instance = subclass.new bot, postprocessor
-        instance.accept(service: :msgs, group: 'msgs/1', text: '#testing').wait
+        expect(count).to eq(1)
       end
 
       it 'does not reply when only part of a command with argument matches' do
-        expect(postprocessor).to receive(:accept).once
+        message = { service: :msgs, group: 'msgs/1', text: '#testing now' }
+        count = 0
+        subclass.call(bot, message) { |*| count += 1 }.wait
 
-        instance = subclass.new bot, postprocessor
-        instance.accept(service: :msgs, group: 'msgs/1',
-                        text: '#testing now').wait
+        expect(count).to eq(1)
       end
     end
 
@@ -241,20 +235,16 @@ describe Peribot::Service do
       end
 
       it 'replies to messages matching a regex' do
-        expect(postprocessor).to receive(:accept).with(reply)
-
-        instance = subclass.new bot, postprocessor
-        instance.accept(message).wait
+        result = {}
+        subclass.call(bot, message) { |output| result = output }.wait
+        expect(result).to include(reply)
       end
 
       it 'does not reply to messages not matching the regex' do
-        expect(postprocessor).to_not receive(:accept)
-
         bad_msg = message.dup
         bad_msg[:text] = 'It will not match!'
 
-        instance = subclass.new bot, postprocessor
-        instance.accept(bad_msg).wait
+        subclass.call(bot, bad_msg) { raise 'Should not have output' }.wait
       end
     end
 
@@ -270,9 +260,7 @@ describe Peribot::Service do
 
       it 'allows bot use through an accessor' do
         expect(bot).to receive(:log).with('test')
-
-        instance = subclass.new bot, postprocessor
-        instance.accept(message).wait
+        subclass.call(bot, message) {}.wait
       end
     end
 
@@ -287,10 +275,7 @@ describe Peribot::Service do
       end
 
       it 'does not send a reply' do
-        expect(postprocessor).to_not receive(:accept)
-
-        instance = subclass.new bot, postprocessor
-        instance.accept(message).wait
+        subclass.call(bot, message) { raise 'Should not have output' }.wait
       end
     end
 
@@ -307,10 +292,9 @@ describe Peribot::Service do
       end
 
       it 'calls the handler' do
-        expect(postprocessor).to receive(:accept).with(reply)
-
-        instance = subclass.new bot, postprocessor
-        instance.accept(message).wait
+        result = {}
+        subclass.call(bot, message) { |output| result = output }.wait
+        expect(result).to include(reply)
       end
     end
 
@@ -325,13 +309,11 @@ describe Peribot::Service do
       end
 
       it 'sends multiple replies' do
-        expect(postprocessor).to receive(:accept).with(reply)
-        expect(postprocessor).to receive(:accept).with(service: :x,
-                                                       group: 'x/1',
-                                                       text: 'x')
+        results = []
+        subclass.call(bot, message) { |output| results << output }.wait
 
-        instance = subclass.new bot, postprocessor
-        instance.accept(message).wait
+        expect(results).to include(reply)
+        expect(results).to include(service: :x, group: 'x/1', text: 'x')
       end
     end
 
@@ -351,15 +333,15 @@ describe Peribot::Service do
       end
 
       it 'sends one message and logs an error' do
-        expect(postprocessor).to receive(:accept).with(reply)
         expect(bot).to receive(:log) do |msg|
           raise unless msg =~ /exception =/ # make sure exception is logged
           raise unless msg =~ /message =/   # make sure message is logged
           raise unless msg =~ /#test this/  # make sure message text is there
         end
 
-        instance = subclass.new bot, postprocessor
-        instance.accept(message).wait
+        result = {}
+        subclass.call(bot, message) { |output| result = output }.wait
+        expect(result).to include(reply)
       end
     end
 
@@ -375,10 +357,10 @@ describe Peribot::Service do
       end
 
       it 'only calls message handlers once' do
-        expect(postprocessor).to receive(:accept).once
-
-        instance = subclass.new bot, postprocessor
-        instance.accept(service: :x, group: 'x/1', text: 'message').wait
+        message = { service: :x, group: 'x/1', text: 'message' }
+        count = 0
+        subclass.call(bot, message) { |*| count += 1 }.wait
+        expect(count).to eq(1)
       end
     end
 
@@ -394,10 +376,10 @@ describe Peribot::Service do
       end
 
       it 'only calls command handlers once' do
-        expect(postprocessor).to receive(:accept).once
-
-        instance = subclass.new bot, postprocessor
-        instance.accept(service: :x, group: 'x/1', text: '#test').wait
+        message = { service: :x, group: 'x/1', text: '#test' }
+        count = 0
+        subclass.call(bot, message) { |*| count += 1 }.wait
+        expect(count).to eq(1)
       end
     end
 
@@ -421,29 +403,26 @@ describe Peribot::Service do
       end
 
       it 'only calls the handler once' do
-        expect(postprocessor).to receive(:accept).once
-
-        instance = subclass.new bot, postprocessor
-        instance.accept(message).wait
+        count = 0
+        subclass.call(bot, message) { |*| count += 1 }.wait
+        expect(count).to eq(1)
       end
 
       it 'calls the handler with data for the first matching regex' do
-        expect(postprocessor).to receive(:accept).with(reply)
-
-        instance = subclass.new bot, postprocessor
-        instance.accept(message).wait
+        result = {}
+        subclass.call(bot, message) { |output| result = output }.wait
+        expect(result).to include(reply)
       end
     end
 
     shared_context 'invalid message' do
       let(:subclass) { Class.new(base) }
-      let(:error_message) do
+      let(:err) do
         'invalid message (must have text, service, and group)'
       end
 
       it 'fails to process the message' do
-        instance = subclass.new bot, postprocessor
-        expect { instance.accept(message).wait }.to raise_error(error_message)
+        expect { subclass.call(bot, message) {}.wait }.to raise_error(err)
       end
     end
 

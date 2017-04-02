@@ -1,15 +1,32 @@
 require 'peribot/bot/configuration'
 require 'peribot/bot/stores'
-require 'yaml'
 
 module Peribot
-  # A class representing a Peribot instance, which registers services and
-  # middleware tasks and provides facilities for configuration, persistent
-  # storage, etc. This is the single most important part of a Peribot instance,
-  # as it is what connects all other components together.
+  # Bot represents a Peribot instance, including lists of tasks used to
+  # construct message processing pipelines as well as all shared/persistent
+  # state and configuration for processors. Essentially, it is the glue that
+  # holds any working Peribot instance together.
   class Bot
     include Configuration
     include Stores
+
+    # The set of stages used by a {Bot} to process messages. Each stage will
+    # have a registry within the bot instance, which provides
+    # {ProcessorRegistry#register} and {ProcessorRegistry#list} methods for
+    # registering processors or seeing which processors have been previously
+    # registered to that stage.
+    #
+    # When a message is processed using the given stage, an instance of the
+    # given processor class will be constructed using the processors defined in
+    # the corresponding registry, and used to process the message. Resulting
+    # messages will be processed by the next stage in the list, until all
+    # stages have been executed.
+    STAGES = {
+      preprocessor: ProcessorChain,
+      service: ProcessorGroup,
+      postprocessor: ProcessorChain,
+      sender: ProcessorGroup
+    }.freeze
 
     # Create a new Peribot instance and set up its basic configuration options.
     # All bot instances require a configuration file (containing instance
@@ -27,33 +44,30 @@ module Peribot
       @store_file = store_file
 
       @caches = Concurrent::Map.new do |map, key|
-        map[key] = Peribot::Util::KeyValueAtom.new
+        map[key] = Util::KeyValueAtom.new
       end
 
-      @services = []
-
-      setup_middleware
+      setup_registries
     end
-    attr_reader :preprocessor, :postprocessor, :sender, :services, :caches
-
-    # Send a message to this bot instance and process it through all middleware
-    # chains and services. This method is really just a convenient way to send
-    # a message to the preprocessor, but it is recommended rather than invoking
-    # the preprocessor's #accept method directly.
-    #
-    # @param message [Hash] The message to process
-    def accept(message)
-      preprocessor.accept message
-    end
+    attr_reader :caches
 
     # Register a service with this Peribot instance. It will be instantiated
     # and used to process each message that this bot receives. Services will
     # only be registered once regardless of how many times this method is
     # called with one.
     #
-    # @param service [Class] A service that should receive messages
-    def register(service)
-      services << service unless services.include? service
+    # @deprecated Use Bot#service.register instead
+    #
+    # @param s [Class] A service that should receive messages
+    def register(s)
+      service.register s
+    end
+
+    # Obtain an array of the services registered with this bot.
+    #
+    # @deprecated Use Bot#service.list instead
+    def services
+      service.list
     end
 
     # Have the bot make use of some given functionality. This general method is
@@ -77,42 +91,39 @@ module Peribot
       item.register_into self, *args
     end
 
-    # A simple logging function for use by Peribot components. Outputs the
-    # given message to stderr with a "[Peribot]" prefix.
+    # Output the given message to stderr with a "[Peribot]" prefix. This helps
+    # provide a consistent logging format and method for processors.
     #
     # @param message Text or other item to output to stderr
     def log(message)
       $stderr.puts "[Peribot] #{message}"
     end
 
+    # Process a message using this bot instance by sending it to the first
+    # message processing stage (the preprocessor). Optionally, messages can be
+    # sent to an arbitrary stage to bypass portions of the pipeline.
+    #
+    # @param message [Hash] The message to process
+    # @param stage [Symbol] The stage to send the message to
+    def accept(message, stage: STAGES.keys.first)
+      procs = @registries.fetch(stage).list
+      STAGES.fetch(stage).new(procs).call(self, message) do |out|
+        remaining = STAGES.keys.drop_while { |s| s != stage }.drop(1)
+        accept(out, stage: remaining.first) unless remaining.empty?
+      end
+    end
+
     private
 
     # (private)
     #
-    # Set up preprocessing, postprocessing, and sending middleware for this bot
-    # instance.
-    def setup_middleware
-      @preprocessor = ProcessorChain.new(self) do |message|
-        dispatch message.freeze
-      end
+    # Set up the registries used to construct pipelines.
+    def setup_registries
+      @registries = {}
 
-      @postprocessor = ProcessorChain.new(self) do |message|
-        sender.accept message
-      end
-
-      @sender = ProcessorGroup.new(self)
-    end
-
-    # (private)
-    #
-    # Dispatch a message to all services in this bot instance.
-    #
-    # @param message [Hash] The message to send to services
-    # @return [Array<Concurrent::IVar>] An array containing an IVar per service
-    def dispatch(message)
-      services.map do |service|
-        instance = service.new self, postprocessor
-        instance.accept message
+      STAGES.keys.each do |stage|
+        @registries[stage] = ProcessorRegistry.new
+        define_singleton_method(stage) { @registries.fetch stage }
       end
     end
   end

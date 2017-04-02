@@ -1,9 +1,10 @@
 module Peribot
-  # A module to provide standard functionality for printing error messages
-  # within Peribot components. It assumes the presence of a #bot accessor
-  # method that returns a Peribot instance with a #log method.
+  # ErrorHelpers provides standard functionality for printing relatively useful
+  # error messages from processors. This is part of Peribot's general
+  # log-and-ignore exception handling strategy.
   #
-  # This module is designed primarily for internal use.
+  # This module is designed and intended for internal use within Peribot. It is
+  # not considered public, and the API is not guaranteed to be stable.
   module ErrorHelpers
     private
 
@@ -14,7 +15,7 @@ module Peribot
     # @param error [Exception] The exception that occurred
     # @param message [Hash] The message that caused the exception
     # @param logger [Proc] A method to log the error with
-    def log_failure(error: nil, message: nil, logger: bot.method(:log))
+    def log_failure(error: nil, message: nil, logger:)
       msg = "(#{Time.now}) Error in #{self.class}"
       msg << "\n  => message = #{message}" if message
       if error

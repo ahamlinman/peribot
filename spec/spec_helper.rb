@@ -1,3 +1,7 @@
+RSpec.configure do |config|
+  config.around(:each) { |example| Timeout.timeout(0.5, &example) }
+end
+
 begin
   require 'simplecov'
   SimpleCov.start do
