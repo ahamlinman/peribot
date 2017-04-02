@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'concurrent'
 
 describe Peribot::ProcessorChain do
   let(:bot) { instance_double(Peribot::Bot) }
@@ -23,28 +24,34 @@ describe Peribot::ProcessorChain do
       end
 
       it 'executes all of the tasks in order' do
-        done = []
+        out = Concurrent::IVar.new
         instance = described_class.new([task(1), task(2), task(3)])
-        instance.call(bot, done: []) { |out| done = out[:done] }
+        instance.call(bot, done: []) { |res| out.set res[:done] }
 
-        expect { done }.to eventually(eq [1, 2, 3])
+        # Note that the call to #value blocks on the IVar being set
+        expect(out.value).to eq [1, 2, 3]
       end
     end
 
     context 'with tasks returning multiple messages' do
       it 'forks to process all messages' do
-        count = 0
         task = proc do |*, &acceptor|
-          count += 1
           acceptor.call({})
           acceptor.call({})
         end
 
         instance = described_class.new([task, task, task])
-        instance.call(bot, {}) {}
+        expected_outputs = 8
 
-        # 2^n - 1 increments expected from our "task tree"
-        expect { count }.to eventually(eq 7)
+        count = Concurrent::AtomicFixnum.new
+        latch = Concurrent::CountDownLatch.new expected_outputs
+        instance.call(bot, {}) do |*|
+          count.increment
+          latch.count_down
+        end
+        latch.wait
+
+        expect(count.value).to eq(expected_outputs)
       end
     end
 
@@ -55,12 +62,12 @@ describe Peribot::ProcessorChain do
           acceptor.call msg
         end
 
-        instance = described_class.new([task, task])
         expect(bot).to receive(:log).with('test').twice
 
-        t = Thread.current
-        instance.call(bot, {}) { |*| t.run }
-        Thread.stop
+        done = Concurrent::Event.new
+        instance = described_class.new([task, task])
+        instance.call(bot, {}) { |*| done.set }
+        done.wait
       end
     end
 
