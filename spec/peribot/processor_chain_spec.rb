@@ -16,19 +16,18 @@ describe Peribot::ProcessorChain do
     end
 
     context 'with multiple tasks' do
-      it 'executes all of the tasks' do
-        count = 0
-
-        task = proc do |_, message, &acceptor|
-          acceptor.call(count: message[:count] + 1)
+      def task(count)
+        proc do |_, message, &acceptor|
+          acceptor.call(done: message[:done] + [count])
         end
+      end
 
-        instance = described_class.new([task, task, task])
-        instance.call(bot, count: 0) do |output|
-          count = output[:count]
-        end
+      it 'executes all of the tasks in order' do
+        done = []
+        instance = described_class.new([task(1), task(2), task(3)])
+        instance.call(bot, done: []) { |out| done = out[:done] }
 
-        expect { count }.to eventually(eq 3)
+        expect { done }.to eventually(eq [1, 2, 3])
       end
     end
 
@@ -49,16 +48,19 @@ describe Peribot::ProcessorChain do
       end
     end
 
-    context 'with a task using the bot instance' do
+    context 'with tasks using the bot instance' do
       it 'provides proper access to the bot' do
-        task = proc do |bot, _|
+        task = proc do |bot, msg, &acceptor|
           bot.log 'test'
+          acceptor.call msg
         end
 
-        instance = described_class.new([task])
+        instance = described_class.new([task, task])
+        expect(bot).to receive(:log).with('test').twice
 
-        expect(bot).to receive(:log).with('test')
-        instance.call(bot, {}) {}.wait
+        t = Thread.current
+        instance.call(bot, {}) { |*| t.run }
+        Thread.stop
       end
     end
 

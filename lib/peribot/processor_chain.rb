@@ -19,7 +19,7 @@ module Peribot
     #
     # @param processors An array of processors
     def initialize(processors)
-      @processors = processors.dup.freeze
+      @processors = processors
     end
 
     # Process a message using the chain.
