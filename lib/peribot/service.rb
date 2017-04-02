@@ -131,7 +131,7 @@ module Peribot
 
       promise = Concurrent::Promise.fulfill []
       promise = chain_handlers promise, message
-      promise.then { |msgs| end_action msgs, message }
+      promise.then { |msgs| Util.process_replies msgs, message, &@acceptor }
     end
 
     private
@@ -246,37 +246,6 @@ module Peribot
           )
           msgs
         end
-      end
-    end
-
-    # (private)
-    #
-    # Send any messages created by handlers to the acceptor.
-    #
-    # @param replies [Array] Replies from handlers in this service
-    # @param original [Hash] The message that we are replying to
-    def end_action(replies, original)
-      msgs = replies.flatten.compact
-      msgs = convert_strings_to_replies msgs, original
-      msgs.each { |msg| acceptor.call msg }
-    end
-
-    # (private)
-    #
-    # Normalize an array containing mixed strings and messages so that it
-    # only contains message hashes.
-    #
-    # @param replies [Array] An array of replies to a message
-    # @param original [Hash] The message that we are replying to
-    # @return [Array<Hash>] A normalized array of replies
-    def convert_strings_to_replies(replies, original)
-      replies.map do |reply|
-        next reply unless reply.instance_of? String
-        {
-          service: original[:service],
-          group: original[:group],
-          text: reply
-        }
       end
     end
   end
