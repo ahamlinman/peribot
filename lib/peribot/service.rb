@@ -111,7 +111,7 @@ module Peribot
       #
       # @param bot [Peribot::Bot] A Peribot instance
       def register_into(bot)
-        bot.register self
+        bot.service.register self
       end
     end
 

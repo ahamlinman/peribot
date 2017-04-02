@@ -39,8 +39,9 @@ describe Peribot::Service do
 
   it 'registers itself into bot instances properly' do
     subclass = Class.new(base)
-    expect(bot).to receive(:register).with(subclass)
+    bot = Peribot::Bot.new
     subclass.register_into bot
+    expect(bot.service.list).to include(subclass)
   end
 
   it 'supports a call method' do
