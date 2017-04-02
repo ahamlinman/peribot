@@ -17,14 +17,6 @@ describe Peribot::Bot do
     expect(instance.sender).to respond_to(:register)
   end
 
-  context 'with an explicit store_file parameter' do
-    let(:instance) { Peribot::Bot.new(store_file: '') }
-
-    it 'sets the store file' do
-      expect(instance.store_file).to eq('')
-    end
-  end
-
   describe '#register' do
     let(:service) { Class.new(Peribot::Service) }
 

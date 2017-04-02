@@ -36,18 +36,6 @@ module Peribot
     end
     attr_reader :preprocessor, :postprocessor, :sender, :services, :caches
 
-    # Send a message to this bot instance and process it through all middleware
-    # chains and services. This method is really just a convenient way to send
-    # a message to the preprocessor, but it is recommended rather than invoking
-    # the preprocessor's #accept method directly.
-    #
-    # @param message [Hash] The message to process
-    def accept(message)
-      ProcessorChain.new(preprocessor.list).call(self, message) do |output|
-        dispatch output.freeze
-      end
-    end
-
     # Register a service with this Peribot instance. It will be instantiated
     # and used to process each message that this bot receives. Services will
     # only be registered once regardless of how many times this method is
@@ -87,7 +75,46 @@ module Peribot
       $stderr.puts "[Peribot] #{message}"
     end
 
+    # Send a message to this bot instance and process it through all middleware
+    # chains and services. This method is really just a convenient way to send
+    # a message to the preprocessor, but it is recommended rather than invoking
+    # the preprocessor's #accept method directly.
+    #
+    # @param message [Hash] The message to process
+    def accept(message)
+      ProcessorChain.new(preprocessor.list).call(self, message) do |output|
+        dispatch_to_services output.freeze
+      end
+    end
+
     private
+
+    # (private)
+    #
+    # Send a message out to all services, then the postprocessor.
+    def dispatch_to_services(message)
+      services.each do |service|
+        service.call(self, message) do |output|
+          dispatch_to_postprocessors output.freeze
+        end
+      end
+    end
+
+    # (private)
+    #
+    # Send a message out to all postprocessors, then the senders.
+    def dispatch_to_postprocessors(message)
+      ProcessorChain.new(postprocessor.list).call(self, message) do |output|
+        dispatch_to_senders output.freeze
+      end
+    end
+
+    # (private)
+    #
+    # Send a message out to all senders, then ignore any output.
+    def dispatch_to_senders(message)
+      ProcessorGroup.new(sender.list).call(self, message) { |*| }
+    end
 
     # (private)
     #
@@ -95,22 +122,7 @@ module Peribot
     def setup_registries
       @preprocessor = ProcessorRegistry.new
       @postprocessor = ProcessorRegistry.new
-      @sender = ProcessorGroup.new(self)
-    end
-
-    # (private)
-    #
-    # Dispatch a message to all services in this bot instance.
-    #
-    # @param message [Hash] The message to send to services
-    # @return [Array<Concurrent::IVar>] An array containing an IVar per service
-    def dispatch(message)
-      services.map do |service|
-        service.call(self, message) do |output|
-          post_chain = ProcessorChain.new(postprocessor.list)
-          post_chain.call(self, output.freeze, sender.method(:accept))
-        end
-      end
+      @sender = ProcessorRegistry.new
     end
   end
 end
