@@ -24,7 +24,7 @@ describe Peribot::ProcessorChain do
         end
 
         instance = described_class.new([task, task, task])
-        instance.call(bot, {count: 0}) do |output|
+        instance.call(bot, count: 0) do |output|
           count = output[:count]
         end
 

@@ -3,6 +3,12 @@ Metrics/ClassLength:
     # Allow Peribot::Service to be complex. Perhaps it can be redesigned later.
     - 'lib/peribot/service.rb'
 
+Metrics/MethodLength:
+  # Bump up allowed method length from the default of 10 lines. I don't want
+  # this to become a slippery slope, but I think there is good use for slightly
+  # longer methods.
+  Max: 15
+
 Style/Documentation:
   Exclude:
     - 'lib/peribot/version.rb'

@@ -204,7 +204,7 @@ describe Peribot::Service do
       end
 
       it 'does not reply when only part of a command matches' do
-        message = {service: :msgs, group: 'msgs/1', text: '#testing'}
+        message = { service: :msgs, group: 'msgs/1', text: '#testing' }
         count = 0
         subclass.call(bot, message) { |*| count += 1 }.wait
 
@@ -212,7 +212,7 @@ describe Peribot::Service do
       end
 
       it 'does not reply when only part of a command with argument matches' do
-        message = {service: :msgs, group: 'msgs/1', text: '#testing now'}
+        message = { service: :msgs, group: 'msgs/1', text: '#testing now' }
         count = 0
         subclass.call(bot, message) { |*| count += 1 }.wait
 
@@ -357,7 +357,7 @@ describe Peribot::Service do
       end
 
       it 'only calls message handlers once' do
-        message = {service: :x, group: 'x/1', text: 'message'}
+        message = { service: :x, group: 'x/1', text: 'message' }
         count = 0
         subclass.call(bot, message) { |*| count += 1 }.wait
         expect(count).to eq(1)
@@ -376,7 +376,7 @@ describe Peribot::Service do
       end
 
       it 'only calls command handlers once' do
-        message = {service: :x, group: 'x/1', text: '#test'}
+        message = { service: :x, group: 'x/1', text: '#test' }
         count = 0
         subclass.call(bot, message) { |*| count += 1 }.wait
         expect(count).to eq(1)
