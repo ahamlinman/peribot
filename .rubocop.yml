@@ -1,7 +1,7 @@
-Metrics/ClassLength:
+Metrics/BlockLength:
   Exclude:
-    # Allow Peribot::Service to be complex. Perhaps it can be redesigned later.
-    - 'lib/peribot/service.rb'
+    # Ignore long blocks in tests This could perhaps be changed in the future.
+    - 'spec/**/*'
 
 Metrics/MethodLength:
   # Bump up allowed method length from the default of 10 lines. I don't want
