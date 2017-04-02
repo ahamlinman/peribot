@@ -1,13 +1,14 @@
+require 'concurrent'
 require 'pstore'
 
 module Peribot
   class Bot
-    # This module provides the implementation of Peribot's persistent storage
-    # facilities. When a store is requested, a Concurrent::Atom is created that
-    # is automatically backed by a PStore. Stored values can be changed using
-    # methods from Concurrent::Atom, such as swap. Changes are persisted as
-    # soon as they succeed. Atoms are created (and their contents loaded from
-    # storage) lazily as requested by components.
+    # Bot::Stores provides the implementation of Peribot's persistent storage
+    # facilities. When a store is requested, Peribot creates a special map that
+    # automatically provides lock-free thread safety and backing by a PStore.
+    # The map is an extension of Concurrent::Atom from concurrent-ruby, thus
+    # all methods of that class are available as well. Maps are created (and
+    # their contents loaded from storage) lazily as requested by processors.
     module Stores
       DEFAULT_STORE_FILE = File.expand_path 'peribot.pstore'
 
@@ -22,7 +23,9 @@ module Peribot
 
           atom = Peribot::Util::KeyValueAtom.new
           atom.swap { initial.freeze } if initial
-          atom.add_observer(&generate_store_observer_proc(key))
+          atom.add_observer do |_, _, new_value|
+            pstore.transaction { pstore[key] = new_value }
+          end
 
           map[key] = atom
         end
@@ -44,19 +47,6 @@ module Peribot
         # PStore#new's second parameter enables thread safety (though perhaps
         # this is overkill?)
         @pstore ||= PStore.new store_file, true
-      end
-
-      # (private)
-      #
-      # Generate an observer that saves data under the given key in the shared
-      # PStore.
-      #
-      # @param key The key under which data will be saved
-      # @return [Proc] An observer proc that updates the store's data
-      def generate_store_observer_proc(key)
-        proc do |_, _, new_value|
-          pstore.transaction { pstore[key] = new_value }
-        end
       end
     end
   end

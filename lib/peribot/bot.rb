@@ -1,12 +1,11 @@
 require 'peribot/bot/configuration'
 require 'peribot/bot/stores'
-require 'yaml'
 
 module Peribot
-  # A class representing a Peribot instance, which registers services and
-  # middleware tasks and provides facilities for configuration, persistent
-  # storage, etc. This is the single most important part of a Peribot instance,
-  # as it is what connects all other components together.
+  # Bot represents a Peribot instance, including lists of tasks used to
+  # construct message processing pipelines as well as all shared/persistent
+  # state and configuration for processors. Essentially, it is the glue that
+  # holds any working Peribot instance together.
   class Bot
     include Configuration
     include Stores
@@ -81,20 +80,20 @@ module Peribot
       item.register_into self, *args
     end
 
-    # A simple logging function for use by Peribot components. Outputs the
-    # given message to stderr with a "[Peribot]" prefix.
+    # Output the given message to stderr with a "[Peribot]" prefix. This helps
+    # provide a consistent logging format and method for processors.
     #
     # @param message Text or other item to output to stderr
     def log(message)
       $stderr.puts "[Peribot] #{message}"
     end
 
-    # Send a message to this bot instance and process it through all middleware
-    # chains and services. This method is really just a convenient way to send
-    # a message to the preprocessor, but it is recommended rather than invoking
-    # the preprocessor's #accept method directly.
+    # Process a message using this bot instance by sending it to the first
+    # message processing stage (the preprocessor). Optionally, messages can be
+    # sent to an arbitrary stage to bypass portions of the pipeline.
     #
     # @param message [Hash] The message to process
+    # @param stage [Symbol] The stage to send the message to
     def accept(message, stage: STAGES.keys.first)
       STAGES[stage].new(@registries[stage].list).call(self, message) do |out|
         remaining = STAGES.keys.drop_while { |s| s != stage }.drop(1)
@@ -106,7 +105,7 @@ module Peribot
 
     # (private)
     #
-    # Set up the registries for preprocessors, postprocessors, and senders.
+    # Set up the registries used to construct pipelines.
     def setup_registries
       @registries = {}
 
