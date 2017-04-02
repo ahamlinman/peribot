@@ -32,7 +32,7 @@ module Peribot
 
       @services = []
 
-      setup_middleware
+      setup_registries
     end
     attr_reader :preprocessor, :postprocessor, :sender, :services, :caches
 
@@ -43,7 +43,9 @@ module Peribot
     #
     # @param message [Hash] The message to process
     def accept(message)
-      preprocessor.accept message
+      ProcessorChain.new(preprocessor.list).call(self, message) do |output|
+        dispatch output.freeze
+      end
     end
 
     # Register a service with this Peribot instance. It will be instantiated
@@ -89,17 +91,10 @@ module Peribot
 
     # (private)
     #
-    # Set up preprocessing, postprocessing, and sending middleware for this bot
-    # instance.
-    def setup_middleware
-      @preprocessor = ProcessorChain.new(self) do |message|
-        dispatch message.freeze
-      end
-
-      @postprocessor = ProcessorChain.new(self) do |message|
-        sender.accept message
-      end
-
+    # Set up the registries for preprocessors, postprocessors, and senders.
+    def setup_registries
+      @preprocessor = ProcessorRegistry.new
+      @postprocessor = ProcessorRegistry.new
       @sender = ProcessorGroup.new(self)
     end
 
@@ -111,8 +106,10 @@ module Peribot
     # @return [Array<Concurrent::IVar>] An array containing an IVar per service
     def dispatch(message)
       services.map do |service|
-        instance = service.new self, postprocessor
-        instance.accept message
+        service.call(self, message) do |output|
+          post_chain = ProcessorChain.new(postprocessor.list)
+          post_chain.call(self, output.freeze, sender.method(:accept))
+        end
       end
     end
   end
