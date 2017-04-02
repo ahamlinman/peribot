@@ -8,13 +8,13 @@ module Peribot
     module Configuration
       # Obtain the saved configuration (loading it if necessary).
       def config
-        @config || configure(load_config.freeze)
+        @config || configure(load_config)
       end
 
       # Set the configuration from a given Hash or through a block (for
       # DSL-style configuration).
       def configure(config = nil, &block)
-        config ||= Peribot::Util::BlockHashBuilder.build(&block)
+        config ||= Util::BlockHashBuilder.build(&block)
         @config = config.dup.freeze
       end
 
@@ -25,7 +25,7 @@ module Peribot
       private
 
       def load_config
-        YAML.load_file(config_file).freeze
+        YAML.load_file(config_file)
       rescue Errno::ENOENT
         raise 'Could not find configuration'
       end

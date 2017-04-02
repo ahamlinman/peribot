@@ -20,6 +20,10 @@ describe Peribot::Bot::Configuration do
     it 'loads the proper configuration' do
       expect(instance.config).to eq('number' => 1, 'string' => 'hi')
     end
+
+    it 'freezes the configuration' do
+      expect(instance.config).to be_frozen
+    end
   end
 
   context 'with an explicit configuration file' do
@@ -84,6 +88,26 @@ describe Peribot::Bot::Configuration do
     it 'uses configuration from the block' do
       expected = { 'key' => 'value', 'group' => { 'key' => 'value' } }
       expect(instance.config).to eq(expected)
+    end
+  end
+
+  context 'with an explicit configuration object' do
+    let(:config) { { 'key' => 'value' } }
+    let(:instance) { test_class.new }
+
+    it 'uses configuration from the object' do
+      instance.configure config
+      expect(instance.config).to eq(config)
+    end
+
+    it 'freezes the resulting configuration' do
+      instance.configure config
+      expect(instance.config).to be_frozen
+    end
+
+    it 'does not freeze the original object' do
+      instance.configure config
+      expect(config).to_not be_frozen
     end
   end
 end
