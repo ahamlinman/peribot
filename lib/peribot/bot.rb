@@ -46,12 +46,16 @@ module Peribot
     # only be registered once regardless of how many times this method is
     # called with one.
     #
+    # @deprecated Use Bot#service.register instead
+    #
     # @param service [Class] A service that should receive messages
     def register(s)
       service.register s
     end
 
     # Obtain an array of the services registered with this bot.
+    #
+    # @deprecated Use Bot#service.list instead
     def services
       service.list
     end
