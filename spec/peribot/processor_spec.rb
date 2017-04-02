@@ -36,7 +36,7 @@ describe Peribot::Processor do
       acceptor = double('acceptor')
       expect(acceptor).to receive(:call).with(message: 'hi')
 
-      task.call(bot, { message: 'hi' }, &acceptor.method(:call))
+      task.call(bot, { message: 'hi' }, &acceptor.method(:call)).wait
     end
 
     it 'logs processor failures' do
@@ -47,7 +47,7 @@ describe Peribot::Processor do
       end
 
       expect(bot).to receive(:log).with(/Error in/)
-      task.call(bot, {}) {}
+      task.call(bot, {}) {}.wait
     end
   end
 

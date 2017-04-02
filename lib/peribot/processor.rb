@@ -1,3 +1,5 @@
+require 'concurrent'
+
 module Peribot
   # Superclass representing a processor task. Processor tasks receive messages
   # (via the {#process} method), change them as appropriate, and pass them on
@@ -27,14 +29,15 @@ module Peribot
       def call(bot, message)
         this = new bot
 
-        begin
-          result = this.process message
-        rescue => e
-          log_failure error: e, message: message, logger: bot.method(:log)
-        end
+        Concurrent::Future.execute do
+          begin
+            result = this.process message
+          rescue => e
+            log_failure error: e, message: message, logger: bot.method(:log)
+          end
 
-        return unless result
-        yield result
+          yield result if result
+        end
       end
 
       # Throw an error stating that this Processor class does not give a proper
