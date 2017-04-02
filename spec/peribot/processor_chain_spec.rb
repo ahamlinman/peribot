@@ -11,7 +11,7 @@ describe Peribot::ProcessorChain do
         end
 
         instance = described_class.new([task])
-        expect { instance.call(bot, {}) {} }.to output("{}\n").to_stdout
+        expect { instance.call(bot, {}) {}.wait }.to output("{}\n").to_stdout
       end
     end
 
@@ -58,7 +58,7 @@ describe Peribot::ProcessorChain do
         instance = described_class.new([task])
 
         expect(bot).to receive(:log).with('test')
-        instance.call(bot, {}) {}
+        instance.call(bot, {}) {}.wait
       end
     end
 
@@ -81,7 +81,7 @@ describe Peribot::ProcessorChain do
 
         expect(bot).to receive(:log).with(/#{Regexp.quote(log_msg)}/)
         instance = described_class.new([task])
-        instance.call(bot, message) {}
+        instance.call(bot, message) {}.wait
       end
     end
   end

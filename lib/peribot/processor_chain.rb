@@ -1,3 +1,5 @@
+require 'concurrent'
+
 module Peribot
   # ProcessorChain is a processor that composes multiple sub-processors into a
   # serial pipeline, to allow for filtering, transformation, and other use
@@ -26,17 +28,20 @@ module Peribot
     # @param message The message to process
     # @yield Messages output by processors in the chain
     def call(bot, message, &acceptor)
-      if @processors.empty?
-        yield message
-        return
-      end
-
-      begin
-        @processors.first.call bot, message do |output|
-          self.class.new(@processors.drop(1)).call bot, output, &acceptor
+      Concurrent::Future.execute do
+        if @processors.empty?
+          yield message
+          return
         end
-      rescue => e
-        log_failure error: e, message: message, logger: bot.public_method(:log)
+
+        begin
+          @processors.first.call bot, message do |output|
+            self.class.new(@processors.drop(1)).call bot, output, &acceptor
+          end
+        rescue => e
+          log_failure error: e, message: message,
+                      logger: bot.public_method(:log)
+        end
       end
     end
   end
