@@ -81,8 +81,9 @@ describe Peribot::Bot do
       instance.postprocessor.register get_processor(:postprocessor)
 
       result = {}
-      instance.sender.register(proc do |_, message|
+      instance.sender.register(proc do |_, message, &acceptor|
         result = message.merge(sender: message[:count])
+        acceptor.call result
       end)
 
       instance.accept(count: 0)
@@ -93,6 +94,12 @@ describe Peribot::Bot do
         postprocessor: 2,
         sender: 3
       )
+    end
+
+    context 'with an invalid stage' do
+      it 'raises an error' do
+        expect { instance.accept({}, stage: :bad) }.to raise_error KeyError
+      end
     end
   end
 end

@@ -44,7 +44,7 @@ module Peribot
       @store_file = store_file
 
       @caches = Concurrent::Map.new do |map, key|
-        map[key] = Peribot::Util::KeyValueAtom.new
+        map[key] = Util::KeyValueAtom.new
       end
 
       setup_registries
@@ -106,7 +106,8 @@ module Peribot
     # @param message [Hash] The message to process
     # @param stage [Symbol] The stage to send the message to
     def accept(message, stage: STAGES.keys.first)
-      STAGES[stage].new(@registries[stage].list).call(self, message) do |out|
+      procs = @registries.fetch(stage).list
+      STAGES.fetch(stage).new(procs).call(self, message) do |out|
         remaining = STAGES.keys.drop_while { |s| s != stage }.drop(1)
         accept(out, stage: remaining.first) unless remaining.empty?
       end
@@ -122,7 +123,7 @@ module Peribot
 
       STAGES.keys.each do |stage|
         @registries[stage] = ProcessorRegistry.new
-        define_singleton_method(stage) { @registries[stage] }
+        define_singleton_method(stage) { @registries.fetch stage }
       end
     end
   end
