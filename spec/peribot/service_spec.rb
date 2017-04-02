@@ -9,7 +9,6 @@ describe Peribot::Service do
     { service: :msgr, group: 'msgr/1234', text: 'Success!' }
   end
   let(:bot) { instance_double(Peribot::Bot) }
-  let(:postprocessor) { instance_double(Peribot::ProcessorChain) }
 
   it 'supports message handlers in subclasses' do
     subclass = Class.new(base) do
