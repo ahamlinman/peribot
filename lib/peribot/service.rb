@@ -253,7 +253,7 @@ module Peribot
           log_failure(
             error: error,
             message: args[:message],
-            logger: bot.method(:log)
+            logger: bot.public_method(:log)
           )
           msgs
         end

@@ -28,7 +28,8 @@ module Peribot
         begin
           p.call(bot, message, &acceptor)
         rescue => e
-          log_failure error: e, message: message, logger: bot.method(:log)
+          log_failure error: e, message: message,
+                      logger: bot.public_method(:log)
         end
       end
     end

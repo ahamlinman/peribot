@@ -36,7 +36,7 @@ module Peribot
           self.class.new(@processors.drop(1)).call bot, output, &acceptor
         end
       rescue => e
-        log_failure error: e, message: message, logger: bot.method(:log)
+        log_failure error: e, message: message, logger: bot.public_method(:log)
       end
     end
   end

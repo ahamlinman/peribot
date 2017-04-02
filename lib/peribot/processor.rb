@@ -41,7 +41,8 @@ module Peribot
           begin
             result = this.process message
           rescue => e
-            log_failure error: e, message: message, logger: bot.method(:log)
+            log_failure error: e, message: message,
+                        logger: bot.public_method(:log)
           end
 
           Util.process_replies [result], message, &acceptor
