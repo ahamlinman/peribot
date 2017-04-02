@@ -45,7 +45,11 @@ describe Peribot::ErrorHelpers do
       it 'logs the message and error' do
         Timecop.freeze do
           expect(bot).to receive(:log).with(output)
-          tester.log_failure message: message, error: error
+          tester.log_failure(
+            message: message,
+            error: error,
+            logger: bot.method(:log)
+          )
         end
       end
     end
@@ -65,7 +69,7 @@ describe Peribot::ErrorHelpers do
       it 'logs the error' do
         Timecop.freeze do
           expect(bot).to receive(:log).with(output)
-          tester.log_failure error: error
+          tester.log_failure error: error, logger: bot.method(:log)
         end
       end
     end
@@ -82,7 +86,7 @@ describe Peribot::ErrorHelpers do
       it 'logs the message and error' do
         Timecop.freeze do
           expect(bot).to receive(:log).with(output)
-          tester.log_failure message: message
+          tester.log_failure message: message, logger: bot.method(:log)
         end
       end
     end
@@ -93,19 +97,7 @@ describe Peribot::ErrorHelpers do
       it 'logs a generic message' do
         Timecop.freeze do
           expect(bot).to receive(:log).with(output)
-          tester.log_failure
-        end
-      end
-    end
-
-    context 'with a custom logger' do
-      let(:output) { "(#{Time.now}) Error in ErrorTester" }
-      let(:logger) { double('logger') }
-
-      it 'logs a generic message' do
-        Timecop.freeze do
-          expect(logger).to receive(:call).with(output)
-          tester.log_failure logger: logger
+          tester.log_failure logger: bot.method(:log)
         end
       end
     end

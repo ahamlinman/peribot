@@ -14,7 +14,7 @@ module Peribot
     # @param error [Exception] The exception that occurred
     # @param message [Hash] The message that caused the exception
     # @param logger [Proc] A method to log the error with
-    def log_failure(error: nil, message: nil, logger: bot.method(:log))
+    def log_failure(error: nil, message: nil, logger:)
       msg = "(#{Time.now}) Error in #{self.class}"
       msg << "\n  => message = #{message}" if message
       if error

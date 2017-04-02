@@ -239,7 +239,11 @@ module Peribot
         begin
           msgs << __send__(handler, **args)
         rescue => error
-          log_failure error: error, message: args[:message]
+          log_failure(
+            error: error,
+            message: args[:message],
+            logger: bot.method(:log)
+          )
           msgs
         end
       end

@@ -39,10 +39,5 @@ module Peribot
         log_failure error: e, message: message, logger: bot.method(:log)
       end
     end
-
-    private
-
-    # Required by ErrorHelpers, unfortunately.
-    def bot; end
   end
 end

@@ -32,10 +32,5 @@ module Peribot
         end
       end
     end
-
-    private
-
-    # Required by ErrorHelpers, unfortunately.
-    def bot; end
   end
 end

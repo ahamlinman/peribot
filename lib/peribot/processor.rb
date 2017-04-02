@@ -21,9 +21,6 @@ module Peribot
     class << self
       include ErrorHelpers
 
-      # Required for ErrorHelpers, unfortunately.
-      def bot; end
-
       # Allow Peribot::Processor to support the Peribot 0.9.x processor
       # specification. This is an updated vision of "processors" in Peribot
       # that allows for vastly improved flexibility.
