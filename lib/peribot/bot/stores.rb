@@ -21,7 +21,7 @@ module Peribot
         @stores ||= Concurrent::Map.new do |map, key|
           initial = pstore.transaction { pstore[key] }
 
-          atom = Peribot::Util::KeyValueAtom.new
+          atom = Util::KeyValueAtom.new
           atom.swap { initial.freeze } if initial
           atom.add_observer do |_, _, new_value|
             pstore.transaction { pstore[key] = new_value }

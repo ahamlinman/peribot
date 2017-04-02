@@ -62,6 +62,12 @@ describe Peribot::Bot::Stores do
       expect(instance.stores['sample']['key']).to eq('value')
     end
 
+    it 'freezes initial values from existing store files' do
+      store = PStore.new tmp_file
+      store.transaction { store['test'] = { 'key' => 'value' } }
+      expect(instance.stores['test'].value).to be_frozen
+    end
+
     it 'returns atoms that allow array-style access' do
       instance.stores['mystore']['key'] = 'value'
       expect(instance.stores['mystore']['key']).to eq('value')
