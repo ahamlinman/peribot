@@ -27,7 +27,7 @@ module Peribot
       # Allow Peribot::Processor to support the Peribot 0.9.x processor
       # specification. This is an updated vision of "processors" in Peribot
       # that allows for vastly improved flexibility.
-      def call(bot, message, acceptor)
+      def call(bot, message)
         this = new bot
 
         begin
@@ -37,7 +37,7 @@ module Peribot
         end
 
         return unless result
-        acceptor.call result
+        yield result
       end
 
       # Throw an error stating that this Processor class does not give a proper

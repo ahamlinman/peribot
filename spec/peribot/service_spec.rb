@@ -59,7 +59,7 @@ describe Peribot::Service do
     acceptor = double('acceptor')
     expect(acceptor).to receive(:call).with(hash_including(reply))
 
-    subclass.call(bot, message, acceptor).wait
+    subclass.call(bot, message, &acceptor.method(:call)).wait
   end
 
   describe '#accept' do

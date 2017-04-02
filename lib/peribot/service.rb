@@ -60,7 +60,7 @@ module Peribot
       # Allow Peribot::Service to support the Peribot 0.9.x processor
       # specification. This is an updated vision of "processors" in Peribot
       # that allows for vastly improved flexibility.
-      def call(bot, message, acceptor)
+      def call(bot, message, &acceptor)
         this = new bot, AcceptorTranslator.new(acceptor)
         this.accept message
       end
