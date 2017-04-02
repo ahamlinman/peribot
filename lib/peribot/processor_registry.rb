@@ -1,7 +1,7 @@
 module Peribot
   # ProcessorRegistry provides an ability for components to "register"
-  # processors that may be used by the bot to process messages. New processor
-  # chains and groups can be created from the list obtained from the registry.
+  # processors that may be used by the bot to process messages. Processor
+  # chains and groups can be created using lists obtained from the registries.
   class ProcessorRegistry
     # Create a new processor registry.
     def initialize
@@ -18,7 +18,9 @@ module Peribot
       @processors[processor] = true
     end
 
-    # Obtain a list of processors that have been previously registered.
+    # Obtain a list of processors that have been previously registered. This
+    # method is also named "tasks" for backwards compatibility, however that
+    # form is deprecated.
     #
     # @return An array of processors
     def list

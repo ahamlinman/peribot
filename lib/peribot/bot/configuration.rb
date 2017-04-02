@@ -4,7 +4,7 @@ require 'yaml'
 module Peribot
   class Bot
     # Bot::Configuration provides functionality for configuring and working
-    # with the configuration of Peribot::Bot instances.
+    # with the configuration of {Peribot::Bot} instances.
     module Configuration
       # Obtain the saved configuration (loading it if necessary).
       def config

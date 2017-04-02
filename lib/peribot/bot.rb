@@ -10,6 +10,17 @@ module Peribot
     include Configuration
     include Stores
 
+    # The set of stages used by a {Bot} to process messages. Each stage will
+    # have a registry within the bot instance, which provides
+    # {ProcessorRegistry#register} and {ProcessorRegistry#list} methods for
+    # registering processors or seeing which processors have been previously
+    # registered to that stage.
+    #
+    # When a message is processed using the given stage, an instance of the
+    # given processor class will be constructed using the processors defined in
+    # the corresponding registry, and used to process the message. Resulting
+    # messages will be processed by the next stage in the list, until all
+    # stages have been executed.
     STAGES = {
       preprocessor: ProcessorChain,
       service: ProcessorGroup,
@@ -47,7 +58,7 @@ module Peribot
     #
     # @deprecated Use Bot#service.register instead
     #
-    # @param service [Class] A service that should receive messages
+    # @param s [Class] A service that should receive messages
     def register(s)
       service.register s
     end
