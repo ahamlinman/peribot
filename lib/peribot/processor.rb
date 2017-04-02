@@ -35,9 +35,9 @@ module Peribot
       # @param message [Hash] A Peribot-formatted message
       # @yield One or more messages for further processing
       def call(bot, message, &acceptor)
-        this = new bot
-
         Concurrent::Future.execute do
+          this = new bot
+
           begin
             result = this.process message
           rescue => e
