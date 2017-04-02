@@ -21,10 +21,11 @@ describe Peribot::ProcessorGroup do
     context 'with multiple tasks' do
       it 'executes all of the tasks' do
         count = Concurrent::AtomicFixnum.new
-        task = proc { |*| count.increment }
+        acceptor = proc { |*| count.increment }
+        task = proc { |_, msg, &inc| inc.call msg }
 
         instance = described_class.new([task, task, task])
-        instance.call(bot, {}) {}.each(&:wait)
+        instance.call(bot, {}, &acceptor).each(&:wait)
 
         expect(count.value).to eq(3)
       end
