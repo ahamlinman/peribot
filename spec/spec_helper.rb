@@ -1,5 +1,5 @@
 RSpec.configure do |config|
-  config.around(:each) { |example| Timeout.timeout(1, &example) }
+  config.around(:each) { |example| Timeout.timeout(0.5, &example) }
 end
 
 begin
