@@ -83,6 +83,11 @@ module Peribot
     # register a variety of senders and postprocessors that allow the bot to
     # communicate with GroupMe.
     #
+    # It is expected that this method will be used only at startup, before any
+    # message processing begins. Peribot's registration functionality is not
+    # explicitly thread-safe, and the behavior of pipelines while processors
+    # are actively being registered is not defined.
+    #
     # @param item An item for this bot to use
     # @example Configure a simple Peribot instance
     #   @bot.use Peribot::GroupMe
