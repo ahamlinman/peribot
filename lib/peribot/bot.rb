@@ -99,18 +99,19 @@ module Peribot
       $stderr.puts "[Peribot] #{message}"
     end
 
-    # Process a message using this bot instance by sending it to the first
-    # message processing stage (the preprocessor). Optionally, messages can be
-    # sent to an arbitrary stage to bypass portions of the pipeline.
+    # Process a message using all processors registered with this bot instance,
+    # starting with the first stage (the preprocessor). Optionally, messages
+    # can be sent to an arbitrary stage to bypass portions of the pipeline.
     #
     # @param message [Hash] The message to process
     # @param stage [Symbol] The stage to send the message to
     def accept(message, stage: STAGES.keys.first)
-      procs = @registries.fetch(stage).list
-      STAGES.fetch(stage).new(procs).call(self, message) do |out|
-        remaining = STAGES.keys.drop_while { |s| s != stage }.drop(1)
-        accept(out, stage: remaining.first) unless remaining.empty?
-      end
+      raise KeyError, "invalid stage: #{stage}" unless STAGES.include? stage
+
+      stages = STAGES.drop_while { |s, _| s != stage }
+                     .map { |s, cls| cls.new @registries.fetch(s).list }
+
+      ProcessorChain.new(stages).call(self, message) { |*| }
     end
 
     private
