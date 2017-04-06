@@ -101,6 +101,27 @@ describe Peribot::Bot do
       )
     end
 
+    it 'sends messages directly into later pipeline stages' do
+      instance.postprocessor.register get_processor(:postprocessor)
+
+      done = Concurrent::Event.new
+      result = {}
+      instance.sender.register(proc do |_, message, &acceptor|
+        result = message.merge(sender: message[:count])
+        acceptor.call result
+        done.set
+      end)
+
+      instance.accept({ count: 0 }, stage: :postprocessor)
+      done.wait
+
+      expect(result).to eq(
+        count: 1,
+        postprocessor: 0,
+        sender: 1
+      )
+    end
+
     it 'passes itself into processors' do
       passed_bot = Concurrent::IVar.new
       instance.sender.register(proc do |bot, _|
