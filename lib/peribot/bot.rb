@@ -51,25 +51,6 @@ module Peribot
     end
     attr_reader :caches
 
-    # Register a service with this Peribot instance. It will be instantiated
-    # and used to process each message that this bot receives. Services will
-    # only be registered once regardless of how many times this method is
-    # called with one.
-    #
-    # @deprecated Use Bot#service.register instead
-    #
-    # @param s [Class] A service that should receive messages
-    def register(s)
-      service.register s
-    end
-
-    # Obtain an array of the services registered with this bot.
-    #
-    # @deprecated Use Bot#service.list instead
-    def services
-      service.list
-    end
-
     # Have the bot make use of some given functionality. This general method is
     # intended to be the primary means for configuring the functionalities of a
     # {Peribot::Bot} instance.
