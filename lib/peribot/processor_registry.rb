@@ -18,14 +18,11 @@ module Peribot
       @processors[processor] = true
     end
 
-    # Obtain a list of processors that have been previously registered. This
-    # method is also named "tasks" for backwards compatibility, however that
-    # form is deprecated.
+    # Obtain a list of processors that have been previously registered.
     #
     # @return An array of processors
     def list
       @processors.keys
     end
-    alias tasks list
   end
 end
