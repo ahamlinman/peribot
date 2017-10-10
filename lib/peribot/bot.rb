@@ -22,6 +22,7 @@ module Peribot
     # messages will be processed by the next stage in the list, until all
     # stages have been executed.
     STAGES = {
+      filter: ProcessorChain,
       preprocessor: ProcessorChain,
       service: ProcessorGroup,
       postprocessor: ProcessorChain,

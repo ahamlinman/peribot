@@ -6,6 +6,10 @@ describe Peribot::Bot do
   let(:service) { Class.new(Peribot::Service) }
   let(:service_instance) { instance_double(Peribot::Service) }
 
+  it 'allows filter registration' do
+    expect(instance.filter).to respond_to(:register)
+  end
+
   it 'allows preprocessor registration' do
     expect(instance.preprocessor).to respond_to(:register)
   end
@@ -61,6 +65,7 @@ describe Peribot::Bot do
     end
 
     it 'sends messages through each processing phase in order' do
+      instance.filter.register get_processor(:filter)
       instance.preprocessor.register get_processor(:preprocessor)
       instance.service.register get_processor(:service)
       instance.postprocessor.register get_processor(:postprocessor)
@@ -77,11 +82,12 @@ describe Peribot::Bot do
       done.wait
 
       expect(result).to eq(
-        count: 3,
-        preprocessor: 0,
-        service: 1,
-        postprocessor: 2,
-        sender: 3
+        count: 4,
+        filter: 0,
+        preprocessor: 1,
+        service: 2,
+        postprocessor: 3,
+        sender: 4
       )
     end
 
