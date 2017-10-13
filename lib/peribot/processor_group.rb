@@ -30,7 +30,7 @@ module Peribot
         Concurrent::Future.execute do
           begin
             p.call(bot, message, &acceptor)
-          rescue => e
+          rescue StandardError => e
             log_failure error: e, message: message,
                         logger: bot.public_method(:log)
           end

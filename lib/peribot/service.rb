@@ -140,7 +140,7 @@ module Peribot
     # @param message [Hash] The message to process
     # @return [Concurrent::Promise] A promise that can be waited on if necessary
     def accept(message)
-      unless [:text, :service, :group].all? { |k| message[k] }
+      unless %i[text service group].all? { |k| message[k] }
         raise 'invalid message (must have text, service, and group)'
       end
 
@@ -253,7 +253,7 @@ module Peribot
       proc do |msgs|
         begin
           msgs << __send__(handler, **args)
-        rescue => error
+        rescue StandardError => error
           log_failure(
             error: error,
             message: args.fetch(:message),

@@ -109,7 +109,7 @@ module Peribot
     def setup_registries
       @registries = {}
 
-      STAGES.keys.each do |stage|
+      STAGES.each_key do |stage|
         @registries[stage] = ProcessorRegistry.new
         define_singleton_method(stage) { @registries.fetch stage }
       end

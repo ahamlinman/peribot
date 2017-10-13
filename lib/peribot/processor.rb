@@ -40,7 +40,7 @@ module Peribot
 
           begin
             result = this.process message
-          rescue => e
+          rescue StandardError => e
             log_failure error: e, message: message,
                         logger: bot.public_method(:log)
           end

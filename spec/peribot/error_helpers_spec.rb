@@ -31,14 +31,14 @@ describe Peribot::ErrorHelpers do
   describe '#log_failure' do
     context 'with an error and a message' do
       let(:output) do
-        msg = <<-END
+        msg = <<-ERR
         (#{Time.now}) Error in ErrorTester
           => message = #{message}
           => exception = #{error.inspect}
           => backtrace:
               line one
               line two
-        END
+        ERR
         msg.gsub(/^\s{#{msg.match('\s+').to_s.length}}/, '').strip
       end
 
@@ -56,13 +56,13 @@ describe Peribot::ErrorHelpers do
 
     context 'with only an error' do
       let(:output) do
-        msg = <<-END
+        msg = <<-ERR
         (#{Time.now}) Error in ErrorTester
           => exception = #{error.inspect}
           => backtrace:
               line one
               line two
-        END
+        ERR
         msg.gsub(/^\s{#{msg.match('\s+').to_s.length}}/, '').strip
       end
 
@@ -76,10 +76,10 @@ describe Peribot::ErrorHelpers do
 
     context 'with only a message' do
       let(:output) do
-        msg = <<-END
+        msg = <<-ERR
         (#{Time.now}) Error in ErrorTester
           => message = #{message}
-        END
+        ERR
         msg.gsub(/^\s{#{msg.match('\s+').to_s.length}}/, '').strip
       end
 
