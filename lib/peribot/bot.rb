@@ -86,9 +86,9 @@ module Peribot
       $stderr.puts "[Peribot] #{message}"
     end
 
-    # Process a message using all processors registered with this bot instance,
-    # starting with the first stage (the preprocessor). Optionally, messages
-    # can be sent to an arbitrary stage to bypass portions of the pipeline.
+    # Process a message using all processors registered with this bot instance.
+    # Messages can optionally be sent to an arbitrary stage to bypass portions
+    # of the pipeline. Otherwise, they are sent to the first stage.
     #
     # @param message [Hash] The message to process
     # @param stage [Symbol] The stage to send the message to
