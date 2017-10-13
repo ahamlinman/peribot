@@ -1,3 +1,5 @@
+require 'concurrent'
+
 module Peribot
   # ProcessorGroup is a processor that composes multiple sub-processors by
   # fanning received messages out to each of them. Individual processors (and,
