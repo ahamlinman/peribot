@@ -19,7 +19,7 @@ URLs.
 
 ## Development and Usage Status
 
-Peribot is actively maintained as of 2017-04-02. However, to my knowledge, it
+Peribot is actively maintained as of 2017-11-19. However, to my knowledge, it
 is not tested or deployed outside of two bots that I personally operate.
 
 The overall public interface should remain somewhat stable at this point. That
@@ -28,7 +28,7 @@ the state of things. In the event that breaking changes are required, I use a
 form of semantic versioning to help reduce their impact. As the `MAJOR` version
 of Peribot is currently 0, I typically increment the `MINOR` version on
 breaking changes and the `PATCH` version on new features.  When maintaining a
-bot, a version specifier such as `~> 0.9.0` in your Gemfile is recommended.
+bot, a version specifier such as `~> 0.10.0` in your Gemfile is recommended.
 
 ## Documentation
 
