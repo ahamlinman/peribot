@@ -44,9 +44,9 @@ Additional guides may be created in the future.
 
 ## Contributing
 
-I highly encourage bug reports and pull requests on GitHub at
-https://github.com/ahamlinman/peribot. Please ensure that contributions are
-tested!
+Bug reports and changes are welcome at https://github.com/ahamlinman/peribot.
+Please ensure that contributions are unit tested, and please update the
+changelog!
 
 I also welcome helpful comments and criticism regarding the framework. My
 contact information is listed on my GitHub profile at
