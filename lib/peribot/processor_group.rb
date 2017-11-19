@@ -1,3 +1,5 @@
+require 'concurrent'
+
 module Peribot
   # ProcessorGroup is a processor that composes multiple sub-processors by
   # fanning received messages out to each of them. Individual processors (and,
@@ -28,7 +30,7 @@ module Peribot
         Concurrent::Future.execute do
           begin
             p.call(bot, message, &acceptor)
-          rescue => e
+          rescue StandardError => e
             log_failure error: e, message: message,
                         logger: bot.public_method(:log)
           end

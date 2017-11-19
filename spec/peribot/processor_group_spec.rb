@@ -52,10 +52,10 @@ describe Peribot::ProcessorGroup do
 
         # Only part of the log will be matched. We just want to ensure that the
         # right message gets output and that the exception isn't forgotten.
-        log_msg = <<-END
+        log_msg = <<-LOG
           => message = #{message}
           => exception =
-        END
+        LOG
         log_msg.gsub!(/^\s{#{log_msg.match('\s+').to_s.length - 2}}/, '')
         log_msg.strip!
 

@@ -22,6 +22,7 @@ module Peribot
     # messages will be processed by the next stage in the list, until all
     # stages have been executed.
     STAGES = {
+      filter: ProcessorChain,
       preprocessor: ProcessorChain,
       service: ProcessorGroup,
       postprocessor: ProcessorChain,
@@ -50,25 +51,6 @@ module Peribot
       setup_registries
     end
     attr_reader :caches
-
-    # Register a service with this Peribot instance. It will be instantiated
-    # and used to process each message that this bot receives. Services will
-    # only be registered once regardless of how many times this method is
-    # called with one.
-    #
-    # @deprecated Use Bot#service.register instead
-    #
-    # @param s [Class] A service that should receive messages
-    def register(s)
-      service.register s
-    end
-
-    # Obtain an array of the services registered with this bot.
-    #
-    # @deprecated Use Bot#service.list instead
-    def services
-      service.list
-    end
 
     # Have the bot make use of some given functionality. This general method is
     # intended to be the primary means for configuring the functionalities of a
@@ -104,9 +86,9 @@ module Peribot
       $stderr.puts "[Peribot] #{message}"
     end
 
-    # Process a message using all processors registered with this bot instance,
-    # starting with the first stage (the preprocessor). Optionally, messages
-    # can be sent to an arbitrary stage to bypass portions of the pipeline.
+    # Process a message using all processors registered with this bot instance.
+    # Messages can optionally be sent to an arbitrary stage to bypass portions
+    # of the pipeline. Otherwise, they are sent to the first stage.
     #
     # @param message [Hash] The message to process
     # @param stage [Symbol] The stage to send the message to
@@ -127,7 +109,7 @@ module Peribot
     def setup_registries
       @registries = {}
 
-      STAGES.keys.each do |stage|
+      STAGES.each_key do |stage|
         @registries[stage] = ProcessorRegistry.new
         define_singleton_method(stage) { @registries.fetch stage }
       end
