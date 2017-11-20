@@ -9,7 +9,7 @@ describe Peribot::Util do
         'A reply!',
         nil,
         [nil, 'Another!'],
-        [{ service: :grpy, group: 'grpy/2356', text: 'Wow!' }]
+        [[nil], [{ service: :grpy, group: 'grpy/2356', text: 'Wow!' }]]
       ]
     end
 

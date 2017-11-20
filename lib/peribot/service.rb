@@ -155,10 +155,11 @@ module Peribot
 
     # (private)
     #
-    # Run all handlers of all types in this service class.
+    # Run all handlers of all types in this service class, within the context
+    # of a Concurrent::Promise. Replies will be grouped by handler type.
     def _invoke_all_handlers_async(message)
       Concurrent::Promise.execute do
-        %i[message command listen].flat_map do |type|
+        %i[message command listen].map do |type|
           __send__("_invoke_#{type}_handlers", message)
         end
       end

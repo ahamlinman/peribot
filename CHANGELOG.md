@@ -9,7 +9,7 @@ progress this project adheres to a form of Semantic Versioning (see README.md).
 
 ## [Unreleased]
 ### Changed
-- Backwards-compatible refactoring.
+- Backwards-compatible refactoring and unit testing.
 
 ## [0.10.0] - 2017-11-19
 ### Added

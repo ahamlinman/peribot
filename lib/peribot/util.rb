@@ -8,7 +8,7 @@ module Peribot
 
     # Take an array of replies, and:
     #
-    #   * flatten out any arrays containing multiple replies
+    #   * flatten it out completely
     #   * remove any nil replies
     #   * convert string-only replies to Peribot-formatted message hashes
     #     (based on the original message provided)
