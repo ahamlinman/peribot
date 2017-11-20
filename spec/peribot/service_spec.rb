@@ -166,6 +166,14 @@ describe Peribot::Service do
           expect(result).to be_fulfilled
         end
 
+        it 'does not treat special chars in commands as regex specifiers' do
+          bad_msg = message.dup
+          bad_msg[:text] = '#myycmd'
+
+          result = subclass.call(bot, bad_msg) { raise }.wait
+          expect(result).to be_fulfilled
+        end
+
         it 'passes nil as the argument' do
           result = {}
           subclass.call(bot, message) { |output| result = output }.wait
