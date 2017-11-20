@@ -349,11 +349,14 @@ describe Peribot::Service do
           raise unless msg =~ /exception =/ # make sure exception is logged
           raise unless msg =~ /message =/   # make sure message is logged
           raise unless msg =~ /#test this/  # make sure message text is there
+
+          # Ensure that logger return values don't result in messages
+          'Logging was successful!'
         end
 
-        result = {}
-        subclass.call(bot, message) { |output| result = output }.wait
-        expect(result).to include(reply)
+        result = Concurrent::IVar.new
+        subclass.call(bot, message) { |output| result.set output }.wait
+        expect(result.value).to include(reply)
       end
     end
 
