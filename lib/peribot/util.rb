@@ -23,12 +23,15 @@ module Peribot
     # lower-level callback-based world.
     def process_replies(replies, original, &accept)
       outputs = replies.flatten.compact.map do |reply|
-        next reply unless reply.instance_of? String
-        {
-          service: original[:service],
-          group: original[:group],
-          text: reply
-        }
+        if reply.instance_of? String
+          {
+            service: original[:service],
+            group: original[:group],
+            text: reply
+          }
+        else
+          reply
+        end
       end
 
       outputs.each(&accept)
