@@ -144,9 +144,9 @@ module Peribot
         raise 'invalid message (must have text, service, and group)'
       end
 
-      promise = Concurrent::Promise.fulfill []
-      promise = chain_handlers promise, message
-      promise.then { |msgs| Util.process_replies msgs, message, &acceptor }
+      _invoke_all_handlers_async(message).then do |replies|
+        Util.process_replies replies, message, &acceptor
+      end
     end
 
     private
@@ -155,113 +155,73 @@ module Peribot
 
     # (private)
     #
-    # Chain calls to appropriate handler methods onto the given promise.
-    #
-    # @param promise [Concurrent::Promise] The initial promise
-    # @param message [Hash] The message being processed
-    # @return [Concurrent::Promise] The promise with handlers
-    def chain_handlers(promise, message)
-      promise = chain_message_handlers promise, message
-      promise = chain_command_handlers promise, message
-      chain_listen_handlers promise, message
-    end
-
-    # (private)
-    #
-    # Chain calls to message handlers onto a promise.
-    #
-    # @see chain_handlers
-    def chain_message_handlers(promise, message)
-      self.class.message_handlers.reduce(promise) do |prom, handler|
-        prom.then(&handler_proc(handler, message: message))
+    # Run all handlers of all types in this service class.
+    def _invoke_all_handlers_async(message)
+      Concurrent::Promise.execute do
+        %i[message command listen].flat_map do |type|
+          __send__("_invoke_#{type}_handlers", message)
+        end
       end
     end
 
     # (private)
     #
-    # Chain calls to command handlers onto a promise
+    # Run all message handlers in this service class.
+    def _invoke_message_handlers(message)
+      self.class.message_handlers.map do |handler|
+        _safe_invoke handler, message: message
+      end
+    end
+
+    # (private)
     #
-    # @see chain_handlers
-    def chain_command_handlers(promise, message)
-      self.class.command_handlers.reduce(promise) do |prom, (cmd, handler)|
+    # Run all command handlers in this service class.
+    def _invoke_command_handlers(message)
+      self.class.command_handlers.map do |cmd, handler|
         text = message.fetch :text
 
         safe_cmd = Regexp.quote(cmd)
-        next prom unless text =~ /\A##{safe_cmd}(?: |\z)/
+        next unless text =~ /\A##{safe_cmd}(?: |\z)/
 
         args = text.split.drop(1).join(' ')
         args = nil if args.empty?
 
-        prom.then(&handler_proc(handler, command: cmd, arguments: args,
-                                         message: message))
+        _safe_invoke handler, command: cmd, arguments: args, message: message
       end
     end
 
     # (private)
     #
-    # Chain calls to listen handlers onto a promise
+    # Run all listen handlers in this service class.
     #
-    # @see chain_handlers
-    def chain_listen_handlers(promise, message)
-      listen_matches(message).reduce(promise) do |prom, (handler, match)|
-        prom.then(&handler_proc(handler, match: match, message: message))
-      end
-    end
-
-    # (private)
-    #
-    # Obtain a deduplicated list of listen handlers and associated regex match
-    # data for a given message. As different regexes can correspond to the same
-    # handler, this ensures that a given handler is only called once for a
-    # particular message no matter how many matches there are. It also ensures
-    # that regexes registered first take priority when determining which match
-    # data is included.
-    #
-    # @param message [Hash] The message being processed
-    # @return [Hash] A map from handler functions to match data
-    def listen_matches(message)
+    # As different regexes can correspond to the same handler, we ensure that a
+    # given handler is only called once for a particular message no matter how
+    # many matches there are. We also ensure that regexes registered first take
+    # priority when determining which match data is included.
+    def _invoke_listen_handlers(message)
       text = message.fetch :text
 
       handlers = self.class.listen_handlers.map do |regex, handler|
         next unless text =~ regex
         [handler, regex.match(text)]
       end
-      handlers.compact.uniq(&:first)
+
+      handlers.compact.uniq(&:first).map do |handler, match|
+        _safe_invoke handler, match: match, message: message
+      end
     end
 
     # (private)
     #
-    # Get a proc that can be chained onto a promise to call a handler method.
-    #
-    # @overload handler_proc(handler, message:)
-    #   Obtain a proc to call a message handler
-    #   @param message [Hash] The message being processed
-    #
-    # @overload handler_proc(handler, command:, arguments:, message:)
-    #   Obtain a proc to call a command handler
-    #   @param command [String] The command that was given
-    #   @param arguments [String] Arguments to the command
-    #   @param message [Hash] The message being processed
-    #
-    # @overload handler_proc(handler, match:, message:)
-    #   Obtain a proc to call a listen handler
-    #   @param match [MatchData] Regex match information for the message
-    #   @param message [Hash] The message being processed
-    #
-    # @return [Proc] A proc that will call the handler
-    def handler_proc(handler, **args)
-      proc do |msgs|
-        begin
-          msgs << __send__(handler, **args)
-        rescue StandardError => error
-          log_failure(
-            error: error,
-            message: args.fetch(:message),
-            logger: bot.public_method(:log)
-          )
-          msgs
-        end
-      end
+    # Invoke a handler function, and just log an exception if it fails (since
+    # we want other handlers to continue running). In retrospect I'm not
+    # convinced this is ideal behavior.
+    def _safe_invoke(handler, **args)
+      __send__(handler, **args)
+    rescue StandardError => error
+      log_failure error: error, message: args.fetch(:message),
+                  logger: bot.public_method(:log)
+      nil
     end
   end
 end
