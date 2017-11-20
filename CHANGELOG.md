@@ -8,6 +8,8 @@ progress this project adheres to a form of Semantic Versioning (see README.md).
 [Keep a Changelog]: http://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
+### Changed
+- Backwards-compatible refactoring.
 
 ## [0.10.0] - 2017-11-19
 ### Added
