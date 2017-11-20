@@ -126,7 +126,8 @@ describe Peribot::Service do
           bad_msg = message.dup
           bad_msg[:text] = 'Do not process this!'
 
-          subclass.call(bot, bad_msg) { raise 'Should not have output' }.wait
+          result = subclass.call(bot, bad_msg) { raise }.wait
+          expect(result).to be_fulfilled
         end
 
         it 'passes the command to the handler as a string' do
@@ -161,7 +162,8 @@ describe Peribot::Service do
           bad_msg = message.dup
           bad_msg[:text] = 'Do not process this!'
 
-          subclass.call(bot, bad_msg) { raise 'Should not have output' }.wait
+          result = subclass.call(bot, bad_msg) { raise }.wait
+          expect(result).to be_fulfilled
         end
 
         it 'passes nil as the argument' do
@@ -244,7 +246,8 @@ describe Peribot::Service do
         bad_msg = message.dup
         bad_msg[:text] = 'It will not match!'
 
-        subclass.call(bot, bad_msg) { raise 'Should not have output' }.wait
+        result = subclass.call(bot, bad_msg) { raise }.wait
+        expect(result).to be_fulfilled
       end
     end
 
@@ -275,7 +278,8 @@ describe Peribot::Service do
       end
 
       it 'does not send a reply' do
-        subclass.call(bot, message) { raise 'Should not have output' }.wait
+        result = subclass.call(bot, message) { raise }.wait
+        expect(result).to be_fulfilled
       end
     end
 
