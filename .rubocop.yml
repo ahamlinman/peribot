@@ -22,6 +22,6 @@ Style/SignalException:
   EnforcedStyle: only_raise
 
 AllCops:
-  TargetRubyVersion: 2.1
+  TargetRubyVersion: 2.2
   Exclude:
     - 'bin/**/*'
