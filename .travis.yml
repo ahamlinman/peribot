@@ -6,8 +6,4 @@ rvm:
   - 2.5.0
   - jruby-9.1.15.0
 
-matrix:
-  allow_failures:
-    - rvm: 2.5.0 # Fails on Travis CI as of 2017-12-25
-
 script: bundle exec rake spec
