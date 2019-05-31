@@ -1,4 +1,20 @@
-# Peribot [![Build Status](https://travis-ci.org/ahamlinman/peribot.svg?branch=master)](https://travis-ci.org/ahamlinman/peribot)
+**Peribot is no longer in active development.** Its components are kept on
+GitHub in the hope that they may be useful to others, but please keep in mind
+that they have not been maintained for some time, and may fail to operate as
+originally intended.
+
+**Why?** Peribot was developed as a basis for some GroupMe chatbots that I
+personally operated. Those bots are rarely used anymore, and Peribot is not
+used elsewhere to my knowledge. Thus, I no longer have much reason to invest in
+this project.
+
+Thank you for your interest, and sorry for the bad news. The Peribot README
+continues below, but please note that parts of it may become outdated over
+time.
+
+---
+
+# Peribot
 
 Peribot is a message processing framework in Ruby, designed mainly to
 facilitate the creation of IRC-style bots for services like GroupMe. That is,
@@ -17,19 +33,6 @@ a GroupMe bot is as simple as running a Ruby script. Thanks to push
 notification support, there's no need to run a web server and manage callback
 URLs.
 
-## Development and Usage Status
-
-Peribot is actively maintained as of 2017-11-19. However, to my knowledge, it
-is not tested or deployed outside of two bots that I personally operate.
-
-The overall public interface should remain somewhat stable at this point. That
-said, architectural and interface changes may still be made when they improve
-the state of things. In the event that breaking changes are required, I use a
-form of semantic versioning to help reduce their impact. As the `MAJOR` version
-of Peribot is currently 0, I typically increment the `MINOR` version on
-breaking changes and the `PATCH` version on new features.  When maintaining a
-bot, a version specifier such as `~> 0.10.0` in your Gemfile is recommended.
-
 ## Documentation
 
 Framework classes are [pretty
@@ -39,18 +42,6 @@ resources available on the [Peribot
 wiki](https://github.com/ahamlinman/peribot/wiki), including the [Zero to
 Peribot](https://github.com/ahamlinman/peribot/wiki/Zero-to-Peribot) tutorial
 (which is designed to help you set up a basic bot with Peribot).
-
-Additional guides may be created in the future.
-
-## Contributing
-
-Bug reports and changes are welcome at https://github.com/ahamlinman/peribot.
-Please ensure that contributions are unit tested, and please update the
-changelog!
-
-I also welcome helpful comments and criticism regarding the framework. My
-contact information is listed on my GitHub profile at
-https://github.com/ahamlinman.
 
 ## License
 
